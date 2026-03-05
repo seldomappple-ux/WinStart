@@ -1,12 +1,16 @@
 import json
 import os
 import sys
+import shutil
 from typing import List, Dict, Optional
 
 def get_app_path():
     """获取应用程序目录路径。"""
     if getattr(sys, 'frozen', False):
-        return os.path.dirname(sys.executable)
+        base = os.getenv("APPDATA") or os.path.expanduser("~")
+        path = os.path.join(base, "WinStart")
+        os.makedirs(path, exist_ok=True)
+        return path
     # 开发环境下，回到项目根目录
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -15,6 +19,12 @@ DATA_FILE = os.path.join(get_app_path(), "data.json")
 class ConfigManager:
     def __init__(self):
         self.data_file = DATA_FILE
+        self.legacy_data_file = os.path.join(os.path.dirname(sys.executable), "data.json") if getattr(sys, 'frozen', False) else None
+        if self.legacy_data_file and (not os.path.exists(self.data_file)) and os.path.exists(self.legacy_data_file):
+            try:
+                shutil.copy2(self.legacy_data_file, self.data_file)
+            except OSError:
+                pass
         self.data = self._load_data()
         self._ensure_three_slots()
 
