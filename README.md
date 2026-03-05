@@ -1,85 +1,58 @@
-# WinStart Pro - 专业工作流启动器
+# WinStart
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
+WinStart 是一款轻量级的 Windows 一键启动工具，专为创作者和极简主义者设计。它可以帮助你快速启动整套工作流软件，无需在混乱的桌面或开始菜单中寻找程序。
 
-WinStart Pro 是一款专为创意工作者（摄影师、设计师、开发者）打造的轻量级 Windows 软件启动管理工具。通过分组管理，实现一键启动整套工作流环境，解决多软件逐个开启的繁琐痛点。
+## ✨ 特性
 
-## ✨ 核心特性
-
-- **🎨 现代深色 UI**：精心调配的 Dark Mode 界面，符合专业软件审美，长时间使用不刺眼。
-- **🚀 一键工作流**：支持自定义多个工作流（如“修图模式”、“开发模式”），一键启动组内所有软件。
-- **📦 零依赖**：基于 Python 标准库 `tkinter` 构建，无需安装任何第三方 pip 包，下载即用。
-- **⚡ 极速响应**：底层直接调用 Windows API，启动速度快，占用资源极低。
-- **🛠️ 灵活配置**：支持可视化添加、编辑、删除软件路径，支持拖拽排序（规划中）。
-
-## 📸 界面预览
-
-> （此处可插入运行截图）
-> *界面采用卡片式布局，清晰展示不同工作流分组。*
+- **分组管理**：创建不同的启动分组（如“设计工作”、“游戏娱乐”），按需启动。
+- **一键启动**：一键启动分组内的所有程序，支持设置启动延迟。
+- **极简设计**：采用现代深色主题，界面干净、无干扰。
+- **灵活配置**：轻松添加、修改、排序和删除启动项。
+- **轻量便携**：单文件运行，配置本地存储，随身携带。
 
 ## 🚀 快速开始
 
-### 方式一：直接运行源码
+### 运行环境
 
-1. 确保已安装 [Python 3.x](https://www.python.org/downloads/)。
-2. 克隆本项目或下载源码：
+- Windows 10/11
+- Python 3.9+ (如果从源码运行)
+
+### 从源码运行
+
+1. 克隆仓库：
    ```bash
-   git clone https://github.com/seldomappple-ux/WinStart.git
+   git clone https://github.com/yourusername/WinStart.git
    cd WinStart
    ```
-3. 运行主程序：
+
+2. 安装依赖：
    ```bash
-   python WinStart.py
+   pip install -r requirements.txt
    ```
 
-### 方式二：打包为 EXE (可选)
+3. 运行程序：
+   ```bash
+   python src/main.py
+   ```
 
-如果你希望生成独立的 `.exe` 文件：
+### 构建可执行文件
+
+使用 PyInstaller 打包为单文件 exe：
 
 ```bash
-pip install pyinstaller
-pyinstaller -F -w -i icon.ico WinStart.py
-```
-*(注：需自备 `icon.ico` 图标文件，否则可移除 `-i` 参数)*
-
-## 📖 使用指南
-
-1. **添加软件**：点击卡片右上角的 **⚙️ (设置)** 按钮，选择 **➕ 添加程序**。
-2. **选择文件**：支持 `.exe` 可执行文件、`.bat` 批处理脚本或任意快捷方式。
-3. **一键启动**：点击卡片底部的 **🚀 一键启动** 按钮，程序将依次启动该组下的所有软件。
-4. **管理分组**：点击 **⚙️** 按钮可重命名工作流标题（如将“工作流 1”改为“后期修图”）。
-
-## ⚙️ 配置文件
-
-所有配置自动保存在程序同级目录下的 `winstart_config.json` 文件中。支持手动备份或迁移该文件。
-
-```json
-{
-  "groups": [
-    {
-      "title": "🎨 设计模式",
-      "apps": [
-        {"name": "Photoshop 2024", "path": "C:\\Program Files\\Adobe\\...\\Photoshop.exe"},
-        {"name": "Lightroom", "path": "C:\\Program Files\\Adobe\\...\\Lightroom.exe"}
-      ]
-    }
-    // ...
-  ]
-}
+pyinstaller --noconfirm --onefile --windowed --name "WinStart" --icon "assets/app_icon.ico" --add-data "src:src" --add-data "assets:assets" src/main.py
 ```
 
-## 🛠️ 开发计划
+生成的文件位于 `dist/WinStart.exe`。
+图标资源位于 `assets/app_icon.ico` 和 `assets/app_icon.png`。
+如果任务栏仍显示旧图标，请先取消固定旧图标，再重新固定 `dist/WinStart.exe`。
 
-- [ ] 支持拖拽文件直接添加
-- [ ] 支持自定义图标
-- [ ] 启动延时设置（避免瞬间高负载）
-- [ ] 快捷键呼出
+## 🛠️ 技术栈
 
-## 📄 许可证
+- **Python**: 核心逻辑
+- **PySide6 (Qt)**: 现代化 GUI 界面
+- **JSON**: 本地数据存储
 
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+## 📝 许可证
 
----
-
-**作者**：seldomappple-ux  
-**版本**：2.0.0 (Refactored)
+MIT License
