@@ -11,8 +11,8 @@ from src.core.startup_manager import ensure_startup_option_in_task_manager
 from src.ui.main_window import MainWindow
 
 def get_app_root():
-    if getattr(sys, "frozen", False):
-        return os.path.dirname(sys.executable)
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return sys._MEIPASS
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def main():

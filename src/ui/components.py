@@ -698,6 +698,9 @@ class ItemEditorDialog(QDialog):
         self.item_data = item_data or {}
         self.setWindowTitle("编辑启动项" if item_data else "添加启动项")
         self.setMinimumWidth(450)
+        parent_icon = parent.windowIcon() if parent else QIcon()
+        if not parent_icon.isNull():
+            self.setWindowIcon(parent_icon)
         self.setup_ui()
 
     def setup_ui(self):
@@ -826,6 +829,9 @@ class SlotSettingsDialog(QDialog):
         self.config_manager = config_manager
         self.setWindowTitle(f"配置 - {slot_data.get('name')}")
         self.setFixedSize(500, 600)
+        parent_icon = parent.windowIcon() if parent else QIcon()
+        if not parent_icon.isNull():
+            self.setWindowIcon(parent_icon)
         self.setup_ui()
         self.load_items()
 
