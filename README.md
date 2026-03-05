@@ -40,12 +40,20 @@ WinStart 是一款轻量级的 Windows 一键启动工具，专为创作者和�
 使用 PyInstaller 打包为单文件 exe：
 
 ```bash
+python scripts/build_icon.py
 pyinstaller --noconfirm --onefile --windowed --name "WinStart" --icon "assets/app_icon.ico" --add-data "src:src" --add-data "assets:assets" src/main.py
 ```
 
 生成的文件位于 `dist/WinStart.exe`。
 图标资源位于 `assets/app_icon.ico` 和 `assets/app_icon.png`。
+如果你有原始长图标，请放到 `assets/app_icon_source.png`，会自动等比缩放并留白，不会拉伸变形。
 如果任务栏仍显示旧图标，请先取消固定旧图标，再重新固定 `dist/WinStart.exe`。
+
+### 开机自启动
+
+- WinStart 默认不会开机自启动。
+- 安装后会出现在“任务管理器 -> 启动应用”列表里，状态默认为禁用。
+- 你可以在任务管理器中手动启用或禁用 WinStart 开机自启动。
 
 ## 🛠️ 技术栈
 
