@@ -234,6 +234,90 @@ class PhysicsIconWidget(QWidget):
             y = ball["y"] - self.icon_size / 2
             painter.drawPixmap(int(x), int(y), pixmap)
 
+class ThreeDotsButton(QPushButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(30, 30)
+        self.setCursor(Qt.PointingHandCursor)
+        self._hover_factor = 0.0
+        self.force_active = False # Flag to keep button lit
+        
+        self.anim = QPropertyAnimation(self, b"hover_factor")
+        self.anim.setDuration(200)
+        self.anim.setEasingCurve(QEasingCurve.OutQuad)
+        
+    def get_hover_factor(self): return self._hover_factor
+    def set_hover_factor(self, f): self._hover_factor = f; self.update()
+    hover_factor = Property(float, get_hover_factor, set_hover_factor)
+    
+    def set_active(self, active):
+        self.force_active = active
+        if active:
+            self.anim.stop()
+            self._hover_factor = 1.0
+            self.update()
+        else:
+            inside = self.rect().contains(self.mapFromGlobal(QCursor.pos()))
+            self.anim.setStartValue(self._hover_factor)
+            self.anim.setEndValue(1.0 if inside else 0.0)
+            self.anim.start()
+
+    def enterEvent(self, event):
+        if not self.force_active:
+            self.anim.setStartValue(self._hover_factor)
+            self.anim.setEndValue(1.0)
+            self.anim.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        if not self.force_active:
+            self.anim.setStartValue(self._hover_factor)
+            self.anim.setEndValue(0.0)
+            self.anim.start()
+        super().leaveEvent(event)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Center of button
+        cx, cy = self.width() / 2, self.height() / 2
+        
+        # Dot configuration
+        dot_radius = 2.0
+        spacing = 6.0
+        
+        # Draw 3 dots
+        positions = [(cx - spacing, cy), (cx, cy), (cx + spacing, cy)]
+        
+        for px, py in positions:
+            # Base dot color
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor("#888888"))
+            painter.drawEllipse(QPointF(px, py), dot_radius, dot_radius)
+            
+            # Glow effect on hover
+            if self._hover_factor > 0.01:
+                glow_radius = dot_radius + (4.0 * self._hover_factor)
+                
+                gradient = QRadialGradient(px, py, glow_radius)
+                c1 = QColor("#69F0AE")
+                c1.setAlphaF(0.8 * self._hover_factor)
+                c2 = QColor("#69F0AE")
+                c2.setAlphaF(0.0)
+                
+                gradient.setColorAt(0, c1)
+                gradient.setColorAt(1, c2)
+                
+                painter.setBrush(QBrush(gradient))
+                painter.drawEllipse(QPointF(px, py), glow_radius, glow_radius)
+                
+                # Highlight center dot
+                painter.setBrush(QColor("#FFFFFF"))
+                painter.setOpacity(self._hover_factor)
+                painter.drawEllipse(QPointF(px, py), dot_radius, dot_radius)
+                painter.setOpacity(1.0)
+
 class LaunchCard(QFrame):
     launch_requested = Signal(list) # Emits list of items to launch
     edit_requested = Signal(str)    # Emits slot_id
@@ -252,6 +336,7 @@ class LaunchCard(QFrame):
         self._pulse_factor = 0.0
         self.hovering = False
         self.is_launching = False
+        self.menu_active = False  # Flag to keep animation running when menu is open
         
         # Data
         self.items = slot_data.get("items", [])
@@ -274,9 +359,7 @@ class LaunchCard(QFrame):
         
         header_layout.addStretch()
         
-        self.menu_btn = QPushButton("•••")
-        self.menu_btn.setObjectName("MenuButton")
-        self.menu_btn.setFixedSize(30, 30)
+        self.menu_btn = ThreeDotsButton()
         self.menu_btn.clicked.connect(self.show_menu)
         header_layout.addWidget(self.menu_btn)
         
@@ -291,30 +374,30 @@ class LaunchCard(QFrame):
         self.icon_widget = PhysicsIconWidget()
         self.content_layout.addWidget(self.icon_widget)
         
-        # Empty State
-        self.empty_label = QLabel("空")
-        self.empty_label.setStyleSheet("font-size: 40px; color: #333333; font-weight: bold; background: transparent;")
-        self.empty_label.setAlignment(Qt.AlignCenter)
-        self.empty_label.setVisible(False)
-        self.content_layout.addWidget(self.empty_label)
+        # Empty State (Removed as requested)
+        # self.empty_label = QLabel("空")
+        # self.empty_label.setStyleSheet("font-size: 40px; color: #333333; font-weight: bold; background: transparent;")
+        # self.empty_label.setAlignment(Qt.AlignCenter)
+        # self.empty_label.setVisible(False)
+        # self.content_layout.addWidget(self.empty_label)
 
         self.layout.addWidget(self.content_area, stretch=1)
         
         self.refresh_icons()
         
-        # Status Label
-        self.status_label = QLabel("一键启动")
-        self.status_label.setAlignment(Qt.AlignCenter)
-        self.status_label.setStyleSheet("color: #888888; font-size: 12px; background: transparent;")
-        self.layout.addWidget(self.status_label)
+        # Status Label (Removed as requested)
+        # self.status_label = QLabel("一键启动")
+        # self.status_label.setAlignment(Qt.AlignCenter)
+        # self.status_label.setStyleSheet("color: #888888; font-size: 12px; background: transparent;")
+        # self.layout.addWidget(self.status_label)
 
     def refresh_icons(self):
         if not self.items:
             self.icon_widget.setVisible(False)
-            self.empty_label.setVisible(True)
+            # self.empty_label.setVisible(True) # Removed
         else:
             self.icon_widget.setVisible(True)
-            self.empty_label.setVisible(False)
+            # self.empty_label.setVisible(False) # Removed
             self.icon_widget.set_items(self.items)
 
     def setup_animations(self):
@@ -379,36 +462,48 @@ class LaunchCard(QFrame):
         
         # Pulse Effect (Ripple Expanding from Center)
         if self.hovering and not self.is_launching:
-            # 1. Stronger Base Glow
-            glow_color = QColor("#4CAF50")
-            glow_color.setAlpha(40) # Increased base alpha
-            painter.fillPath(path, glow_color)
+            # Advanced Gradient Green Style (Edge Deep, Center Light, Translucent)
             
-            # 2. Dynamic Pulse
+            # 1. Base Gradient (Simulating glass/light effect)
+            # Center is lighter/brighter, edges are deeper
+            base_gradient = QRadialGradient(self.width()/2, self.height()/2, self.width()*0.8)
+            
+            # Colors
+            c_center = QColor("#4CAF50") # Base Green
+            c_center.setAlpha(40)       # Light transparency
+            
+            c_edge = QColor("#1B5E20")   # Deep Green
+            c_edge.setAlpha(180)        # More opaque at edges
+            
+            base_gradient.setColorAt(0, c_center)
+            base_gradient.setColorAt(1, c_edge)
+            
+            painter.fillPath(path, QBrush(base_gradient))
+            
+            # 2. Dynamic Pulse Glow (Breathing from center)
             pulse_val = 0.5 + 0.5 * math.sin(self._pulse_factor * 6.28) # 0 to 1
             
-            # Radius varies
-            radius = self.width() * 0.8 + pulse_val * 60
+            # Radius expands slightly with pulse
+            glow_radius = self.width() * 0.6 + pulse_val * 40
             
-            # Alpha varies significantly
-            alpha = int(100 * pulse_val) # Max alpha 100 (visible!)
+            glow_gradient = QRadialGradient(self.width()/2, self.height()/2, glow_radius)
+            c_glow = QColor("#69F0AE")   # Bright Neon Green
+            c_glow.setAlpha(int(60 * pulse_val)) # Breathing alpha
+            c_fade = QColor("#69F0AE")
+            c_fade.setAlpha(0)
             
-            gradient = QRadialGradient(self.width()/2, self.height()/2, radius)
-            c1 = QColor("#69F0AE") # Bright Green
-            c1.setAlpha(alpha)
-            c2 = QColor("#69F0AE")
-            c2.setAlpha(0)
-            gradient.setColorAt(0, c1)
-            gradient.setColorAt(0.7, c2) # Fade out earlier
-            gradient.setColorAt(1, c2)
+            glow_gradient.setColorAt(0, c_glow)
+            glow_gradient.setColorAt(1, c_fade)
             
-            painter.fillPath(path, QBrush(gradient))
+            painter.fillPath(path, QBrush(glow_gradient))
             
-            # 3. Border Pulse
-            border_alpha = int(150 + 105 * pulse_val)
+            # 3. Enhanced Border (Neon Green, breathing thickness/alpha)
+            border_alpha = int(180 + 75 * pulse_val)
             border_color = QColor("#69F0AE")
             border_color.setAlpha(border_alpha)
-            border_pen = QPen(border_color, 2 + 2 * pulse_val)
+            
+            border_width = 1.5 + 1.0 * pulse_val
+            border_pen = QPen(border_color, border_width)
             painter.setPen(border_pen)
             painter.drawPath(path)
             return # Skip default border drawing
@@ -420,13 +515,15 @@ class LaunchCard(QFrame):
     def enterEvent(self, event):
         if not self.is_launching:
             self.hovering = True
-            self.pulse_anim.start()
+            # Only start if not already running to avoid glitchy restarts
+            if self.pulse_anim.state() != QPropertyAnimation.Running:
+                self.pulse_anim.start()
             self.update()
             self.icon_widget.set_active(True)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
-        if not self.is_launching:
+        if not self.is_launching and not self.menu_active:
             self.hovering = False
             self.pulse_anim.stop()
             self.update()
@@ -469,8 +566,8 @@ class LaunchCard(QFrame):
         
         self._border_color = QColor("#4CAF50")
         
-        self.status_label.setText("正在启动...")
-        self.status_label.setStyleSheet("color: #4CAF50; background: transparent;")
+        # self.status_label.setText("正在启动...")
+        # self.status_label.setStyleSheet("color: #4CAF50; background: transparent;")
         
         # Launch
         self.launch_requested.emit(self.items)
@@ -489,20 +586,23 @@ class LaunchCard(QFrame):
 
         self._border_color = QColor("#333333")
         
-        self.status_label.setText("一键启动")
-        self.status_label.setStyleSheet("color: #888888; background: transparent;")
+        # self.status_label.setText("一键启动")
+        # self.status_label.setStyleSheet("color: #888888; background: transparent;")
 
     def show_menu(self):
+        self.menu_active = True
+        self.menu_btn.set_active(True) # Keep button lit
+        
         menu = QMenu(self)
         menu.setWindowFlags(menu.windowFlags() | Qt.FramelessWindowHint)
         menu.setAttribute(Qt.WA_TranslucentBackground)
         
-        # Enhanced Menu Styling
+        # Enhanced Menu Styling with Gradient Green
         menu.setStyleSheet("""
             QMenu {
-                background-color: #252526;
+                background-color: #1E1E1E;
                 color: #E0E0E0;
-                border: 1px solid #444444;
+                border: 1px solid #333333;
                 border-radius: 8px;
                 padding: 6px;
             }
@@ -510,14 +610,21 @@ class LaunchCard(QFrame):
                 padding: 8px 30px;
                 border-radius: 4px;
                 font-size: 14px;
+                margin: 2px 4px;
             }
             QMenu::item:selected {
-                background-color: #3E3E42;
+                /* Transparent Texture: Edge Light Green (Low Alpha), Center Transparent/Dark */
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgba(105, 240, 174, 30), 
+                    stop:0.2 rgba(0, 0, 0, 0), 
+                    stop:0.8 rgba(0, 0, 0, 0), 
+                    stop:1 rgba(105, 240, 174, 30));
                 color: #FFFFFF;
+                border: 1px solid rgba(105, 240, 174, 80); /* Soft Neon Border */
             }
             QMenu::separator {
                 height: 1px;
-                background: #444444;
+                background: #333333;
                 margin: 4px 10px;
             }
         """)
@@ -529,6 +636,20 @@ class LaunchCard(QFrame):
         pos = self.menu_btn.mapToGlobal(QPoint(0, self.menu_btn.height() + 8))
         
         action = menu.exec(pos)
+        
+        self.menu_active = False
+        self.menu_btn.set_active(False)
+
+        if not self.is_launching:
+            inside = self.rect().contains(self.mapFromGlobal(QCursor.pos()))
+            self.hovering = inside
+            if inside:
+                self.pulse_anim.start()
+                self.icon_widget.set_active(True)
+            else:
+                self.pulse_anim.stop()
+                self.icon_widget.set_active(False)
+            self.update()
         
         if action == edit_action:
             self.edit_requested.emit(self.slot_id)
@@ -639,19 +760,44 @@ class SlotSettingsDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
 
-        # Rename Slot
-        name_layout = QHBoxLayout()
-        name_layout.addWidget(QLabel("卡槽名称:"))
+        # Title
+        title = QLabel(f"配置 - {self.slot_data.get('name')}")
+        title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFFFFF; margin-bottom: 10px;")
+        layout.addWidget(title)
+
+        # Rename Slot Section
+        name_container = QWidget()
+        name_container.setStyleSheet("background-color: #252526; border-radius: 6px;")
+        name_layout = QHBoxLayout(name_container)
+        name_layout.setContentsMargins(15, 15, 15, 15)
+        
+        name_label = QLabel("卡槽名称")
+        name_label.setStyleSheet("color: #AAAAAA; font-weight: bold;")
+        
         self.name_edit = QLineEdit(self.slot_data.get("name"))
-        name_layout.addWidget(self.name_edit)
-        save_name_btn = QPushButton("保存名称")
+        self.name_edit.setPlaceholderText("输入名称...")
+        self.name_edit.setStyleSheet("border: none; background: transparent; color: white; font-size: 16px; border-bottom: 1px solid #444444; border-radius: 0px;")
+        
+        save_name_btn = QPushButton("保存")
+        save_name_btn.setFixedWidth(60)
+        save_name_btn.setStyleSheet("""
+            QPushButton { background: #333333; border: none; color: #CCCCCC; }
+            QPushButton:hover { background: #444444; color: white; }
+        """)
         save_name_btn.clicked.connect(self.save_name)
+        
+        name_layout.addWidget(name_label)
+        name_layout.addWidget(self.name_edit)
         name_layout.addWidget(save_name_btn)
-        layout.addLayout(name_layout)
+        layout.addWidget(name_container)
 
-        layout.addWidget(QLabel("启动项列表:"))
+        # List Section
+        list_label = QLabel("启动项列表")
+        list_label.setStyleSheet("color: #888888; font-size: 13px; margin-top: 10px;")
+        layout.addWidget(list_label)
 
         # List
         self.item_list = QListWidget()
@@ -660,25 +806,34 @@ class SlotSettingsDialog(QDialog):
 
         # Buttons
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(12)
+        
         add_btn = QPushButton("添加程序")
         add_btn.setObjectName("PrimaryButton")
+        add_btn.setFixedHeight(36)
+        add_btn.setCursor(Qt.PointingHandCursor)
         add_btn.clicked.connect(self.add_item)
         
-        edit_btn = QPushButton("编辑选中")
+        edit_btn = QPushButton("编辑")
+        edit_btn.setFixedHeight(36)
+        edit_btn.setCursor(Qt.PointingHandCursor)
         edit_btn.clicked.connect(self.edit_item)
         
-        del_btn = QPushButton("删除选中")
+        del_btn = QPushButton("删除")
         del_btn.setObjectName("DangerButton")
+        del_btn.setFixedHeight(36)
+        del_btn.setCursor(Qt.PointingHandCursor)
         del_btn.clicked.connect(self.delete_item)
 
-        btn_layout.addWidget(add_btn)
-        btn_layout.addWidget(edit_btn)
-        btn_layout.addWidget(del_btn)
+        btn_layout.addWidget(add_btn, 2)
+        btn_layout.addWidget(edit_btn, 1)
+        btn_layout.addWidget(del_btn, 1)
         layout.addLayout(btn_layout)
 
         # Hint
         hint = QLabel("提示: 可拖拽列表项进行排序")
-        hint.setStyleSheet("color: #666666; font-size: 12px;")
+        hint.setStyleSheet("color: #555555; font-size: 12px;")
+        hint.setAlignment(Qt.AlignCenter)
         layout.addWidget(hint)
 
     def load_items(self):

@@ -44,10 +44,11 @@ QLineEdit {
     border-radius: 4px;
     padding: 8px;
     color: #FFFFFF;
-    selection-background-color: #007ACC;
+    selection-background-color: #2E7D32;
 }
 QLineEdit:focus {
-    border: 1px solid #007ACC;
+    border: 1px solid #4CAF50;
+    background-color: #333333;
 }
 
 QPushButton {
@@ -59,42 +60,49 @@ QPushButton {
 }
 QPushButton:hover {
     background-color: #444444;
+    border: 1px solid #555555;
 }
 QPushButton:pressed {
     background-color: #222222;
 }
 
 QPushButton#PrimaryButton {
-    background-color: #007ACC;
-    border: 1px solid #007ACC;
-    color: white;
+    background-color: #2E7D32;
+    border: 1px solid #2E7D32;
+    color: #E8F5E9;
+    font-weight: bold;
 }
 QPushButton#PrimaryButton:hover {
-    background-color: #0063A5;
+    background-color: #1B5E20;
+    border: 1px solid #1B5E20;
 }
 
 QPushButton#DangerButton {
-    background-color: #D32F2F;
-    border: 1px solid #D32F2F;
-    color: white;
+    background-color: #5D1010;
+    border: 1px solid #5D1010;
+    color: #EF9A9A;
 }
 QPushButton#DangerButton:hover {
-    background-color: #B71C1C;
+    background-color: #7F1515;
+    border: 1px solid #7F1515;
+    color: #FFCDD2;
 }
 
 QListWidget {
-    background-color: #252526;
+    background-color: #1E1E1E;
     border: 1px solid #333333;
-    border-radius: 4px;
+    border-radius: 6px;
     outline: none;
 }
 QListWidget::item {
-    padding: 8px;
-    border-bottom: 1px solid #2D2D2D;
+    padding: 10px;
+    border-bottom: 1px solid #252526;
+    color: #CCCCCC;
 }
 QListWidget::item:selected {
-    background-color: #37373D;
+    background-color: #1B5E20;
     color: #FFFFFF;
+    border-left: 3px solid #4CAF50;
 }
 QListWidget::item:hover {
     background-color: #2D2D2D;

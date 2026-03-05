@@ -51,9 +51,9 @@ pyinstaller --noconfirm --onefile --windowed --name "WinStart" --icon "assets/ap
 
 ### 开机自启动
 
-- WinStart 默认不会开机自启动。
-- 安装后会出现在“任务管理器 -> 启动应用”列表里，状态默认为禁用。
-- 你可以在任务管理器中手动启用或禁用 WinStart 开机自启动。
+- WinStart 默认不会开机自启动
+- 安装后会出现在"任务管理器 -> 启动应用"列表里，状态默认为禁用
+- 你可以在任务管理器中手动启用或禁用 WinStart 开机自启动
 
 ## 🛠️ 技术栈
 
