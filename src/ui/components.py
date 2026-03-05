@@ -63,26 +63,35 @@ class PhysicsIconWidget(QWidget):
             center_x = self.width() / 2
             center_y = self.height() / 2
             
-            # Static Grid/Row Layout
-            display_count = min(len(self.balls), 3)
-            total_width = display_count * (self.icon_size + 10) - 10
-            start_x = center_x - total_width / 2 + self.icon_size / 2
+            # Static Grid Layout (Auto-flow, max 3 per row for balance)
+            count = len(self.balls)
+            cols = 3
+            rows = (count + cols - 1) // cols
+            
+            # Total height of the grid
+            total_height = rows * (self.icon_size + 10) - 10
+            start_y = center_y - total_height / 2 + self.icon_size / 2
             
             for i, ball in enumerate(self.balls):
-                if i < display_count:
-                    target_x = start_x + i * (self.icon_size + 10)
-                    ball["target_x"] = target_x
-                    ball["target_y"] = center_y
-                    
-                    if ball["state"] == "static":
-                        ball["x"] = target_x
-                        ball["y"] = center_y
-                else:
-                    ball["target_x"] = center_x
-                    ball["target_y"] = center_y
-                    if ball["state"] == "static":
-                        ball["x"] = center_x
-                        ball["y"] = center_y
+                row = i // cols
+                col = i % cols
+                
+                # Items in current row
+                items_in_row = min(cols, count - row * cols)
+                
+                # Row width
+                row_width = items_in_row * (self.icon_size + 10) - 10
+                start_x = center_x - row_width / 2 + self.icon_size / 2
+                
+                target_x = start_x + col * (self.icon_size + 10)
+                target_y = start_y + row * (self.icon_size + 10)
+                
+                ball["target_x"] = target_x
+                ball["target_y"] = target_y
+                
+                if ball["state"] == "static":
+                    ball["x"] = target_x
+                    ball["y"] = target_y
 
     def set_active(self, active):
         self.active = active
@@ -148,7 +157,7 @@ class PhysicsIconWidget(QWidget):
                 dy = ball["target_y"] - ball["y"]
                 dist = math.sqrt(dx*dx + dy*dy)
                 
-                if dist < 1 or (i >= 3 and dist < 10): 
+                if dist < 1: 
                     ball["x"] = ball["target_x"]
                     ball["y"] = ball["target_y"]
                     ball["state"] = "static"
@@ -227,7 +236,6 @@ class PhysicsIconWidget(QWidget):
 
         # Draw Icons
         for i, ball in enumerate(self.balls):
-            if not self.active and i >= 3: continue 
             
             pixmap = ball["icon"]
             x = ball["x"] - self.icon_size / 2
@@ -697,6 +705,29 @@ class ItemEditorDialog(QDialog):
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
 
+        # Helper for custom label with green indicator
+        def create_label(text):
+            container = QWidget()
+            container.setAttribute(Qt.WA_TranslucentBackground) # Ensure transparency
+            container.setStyleSheet("background: transparent;") # Double ensure
+            l = QHBoxLayout(container)
+            l.setContentsMargins(0, 0, 0, 0)
+            l.setSpacing(10)
+            
+            # Green rounded rectangular line (Vertical Pill)
+            indicator = QFrame()
+            indicator.setFixedSize(4, 16)
+            indicator.setStyleSheet("background-color: #4CAF50; border-radius: 2px;")
+            
+            # Text label
+            lbl = QLabel(text)
+            lbl.setStyleSheet("color: #E0E0E0; font-size: 14px; background: transparent; border: none;")
+            
+            l.addWidget(indicator)
+            l.addWidget(lbl)
+            # l.addStretch() # No stretch needed for FormLayout label role
+            return container
+
         self.name_input = QLineEdit(self.item_data.get("name", ""))
         self.name_input.setPlaceholderText("例如：Photoshop")
         
@@ -715,16 +746,56 @@ class ItemEditorDialog(QDialog):
         self.delay_input = QLineEdit(str(self.item_data.get("delay", 0)))
         self.delay_input.setPlaceholderText("延迟秒数 (0为立即启动)")
         
-        layout.addRow("名称:", self.name_input)
-        layout.addRow("路径:", path_layout)
-        layout.addRow("参数:", self.args_input)
-        layout.addRow("延迟 (秒):", self.delay_input)
+        # Use custom labels
+        layout.addRow(create_label("名称:"), self.name_input)
+        layout.addRow(create_label("路径:"), path_layout)
+        layout.addRow(create_label("参数:"), self.args_input)
+        layout.addRow(create_label("延迟 (秒):"), self.delay_input)
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
         
-        layout.addRow(buttons)
+        layout.addRow(self.buttons)
+
+        # OK Button Logic
+        self.ok_btn = self.buttons.button(QDialogButtonBox.Ok)
+        self.ok_btn.setCursor(Qt.PointingHandCursor)
+        self.update_ok_button() # Set initial state
+        
+        self.path_input.textChanged.connect(self.update_ok_button)
+
+    def update_ok_button(self):
+        path = self.path_input.text().strip()
+        if path:
+            self.ok_btn.setEnabled(True)
+            self.ok_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #2E7D32;
+                    border: 1px solid #2E7D32;
+                    color: #FFFFFF;
+                    border-radius: 4px;
+                    padding: 6px 12px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #388E3C;
+                }
+                QPushButton:pressed {
+                    background-color: #1B5E20;
+                }
+            """)
+        else:
+            self.ok_btn.setEnabled(False)
+            self.ok_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #333333;
+                    border: 1px solid #444444;
+                    color: #888888;
+                    border-radius: 4px;
+                    padding: 6px 12px;
+                }
+            """)
 
     def browse_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "选择程序", "", "可执行文件 (*.exe);;所有文件 (*.*)")
@@ -808,26 +879,86 @@ class SlotSettingsDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(12)
         
-        add_btn = QPushButton("添加程序")
-        add_btn.setObjectName("PrimaryButton")
-        add_btn.setFixedHeight(36)
-        add_btn.setCursor(Qt.PointingHandCursor)
-        add_btn.clicked.connect(self.add_item)
+        # Add Button Style (Green Gradient)
+        self.add_btn = QPushButton("添加程序")
+        self.add_btn.setFixedHeight(36)
+        self.add_btn.setCursor(Qt.PointingHandCursor)
+        self.add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgba(105, 240, 174, 30), 
+                    stop:0.2 rgba(0, 0, 0, 0), 
+                    stop:0.8 rgba(0, 0, 0, 0), 
+                    stop:1 rgba(105, 240, 174, 30));
+                border: 1px solid rgba(105, 240, 174, 80);
+                border-radius: 6px;
+                color: #E0E0E0;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgba(105, 240, 174, 60), 
+                    stop:0.2 rgba(0, 0, 0, 0), 
+                    stop:0.8 rgba(0, 0, 0, 0), 
+                    stop:1 rgba(105, 240, 174, 60));
+                border: 1px solid #69F0AE;
+                color: #FFFFFF;
+            }
+            QPushButton:pressed {
+                background-color: rgba(46, 125, 50, 100);
+            }
+            QPushButton:disabled {
+                border: 1px solid #333333;
+                color: #555555;
+                background-color: transparent;
+            }
+        """)
+        self.add_btn.clicked.connect(self.add_item)
         
-        edit_btn = QPushButton("编辑")
-        edit_btn.setFixedHeight(36)
-        edit_btn.setCursor(Qt.PointingHandCursor)
-        edit_btn.clicked.connect(self.edit_item)
+        self.edit_btn = QPushButton("编辑")
+        self.edit_btn.setFixedHeight(36)
+        self.edit_btn.setCursor(Qt.PointingHandCursor)
+        self.edit_btn.clicked.connect(self.edit_item)
         
-        del_btn = QPushButton("删除")
-        del_btn.setObjectName("DangerButton")
-        del_btn.setFixedHeight(36)
-        del_btn.setCursor(Qt.PointingHandCursor)
-        del_btn.clicked.connect(self.delete_item)
+        # Delete Button Style (Red Gradient - Low Saturation)
+        self.del_btn = QPushButton("删除")
+        self.del_btn.setFixedHeight(36)
+        self.del_btn.setCursor(Qt.PointingHandCursor)
+        self.del_btn.setStyleSheet("""
+            QPushButton {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgba(229, 115, 115, 30), 
+                    stop:0.2 rgba(0, 0, 0, 0), 
+                    stop:0.8 rgba(0, 0, 0, 0), 
+                    stop:1 rgba(229, 115, 115, 30));
+                border: 1px solid rgba(229, 115, 115, 80);
+                border-radius: 6px;
+                color: #E0E0E0;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgba(229, 115, 115, 60), 
+                    stop:0.2 rgba(0, 0, 0, 0), 
+                    stop:0.8 rgba(0, 0, 0, 0), 
+                    stop:1 rgba(229, 115, 115, 60));
+                border: 1px solid #FFCDD2;
+                color: #FFFFFF;
+            }
+            QPushButton:pressed {
+                background-color: rgba(183, 28, 28, 80);
+            }
+            QPushButton:disabled {
+                border: 1px solid #333333;
+                color: #555555;
+                background-color: transparent;
+            }
+        """)
+        self.del_btn.clicked.connect(self.delete_item)
 
-        btn_layout.addWidget(add_btn, 2)
-        btn_layout.addWidget(edit_btn, 1)
-        btn_layout.addWidget(del_btn, 1)
+        btn_layout.addWidget(self.add_btn, 2)
+        btn_layout.addWidget(self.edit_btn, 1)
+        btn_layout.addWidget(self.del_btn, 1)
         layout.addLayout(btn_layout)
 
         # Hint
@@ -852,6 +983,11 @@ class SlotSettingsDialog(QDialog):
             self.slot_data["name"] = new_name # Update local ref
 
     def add_item(self):
+        # Disable buttons
+        self.add_btn.setEnabled(False)
+        self.del_btn.setEnabled(False)
+        self.edit_btn.setEnabled(False)
+        
         dialog = ItemEditorDialog(self)
         if dialog.exec():
             data = dialog.get_data()
@@ -864,6 +1000,11 @@ class SlotSettingsDialog(QDialog):
                     data["delay"]
                 )
                 self.refresh_data()
+        
+        # Enable buttons
+        self.add_btn.setEnabled(True)
+        self.del_btn.setEnabled(True)
+        self.edit_btn.setEnabled(True)
 
     def edit_item(self):
         current = self.item_list.currentItem()
@@ -873,6 +1014,11 @@ class SlotSettingsDialog(QDialog):
         item = next((i for i in self.slot_data["items"] if i["id"] == item_id), None)
         
         if item:
+            # Disable buttons
+            self.add_btn.setEnabled(False)
+            self.del_btn.setEnabled(False)
+            self.edit_btn.setEnabled(False)
+            
             dialog = ItemEditorDialog(self, item)
             if dialog.exec():
                 data = dialog.get_data()
@@ -886,6 +1032,11 @@ class SlotSettingsDialog(QDialog):
                         data["delay"]
                     )
                     self.refresh_data()
+            
+            # Enable buttons
+            self.add_btn.setEnabled(True)
+            self.del_btn.setEnabled(True)
+            self.edit_btn.setEnabled(True)
 
     def delete_item(self):
         current = self.item_list.currentItem()
