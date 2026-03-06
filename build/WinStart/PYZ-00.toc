@@ -34,6 +34,7 @@
   ('csv', 'C:\\Python312\\Lib\\csv.py', 'PYMODULE'),
   ('ctypes', 'C:\\Python312\\Lib\\ctypes\\__init__.py', 'PYMODULE'),
   ('ctypes._endian', 'C:\\Python312\\Lib\\ctypes\\_endian.py', 'PYMODULE'),
+  ('ctypes.wintypes', 'C:\\Python312\\Lib\\ctypes\\wintypes.py', 'PYMODULE'),
   ('dataclasses', 'C:\\Python312\\Lib\\dataclasses.py', 'PYMODULE'),
   ('datetime', 'C:\\Python312\\Lib\\datetime.py', 'PYMODULE'),
   ('decimal', 'C:\\Python312\\Lib\\decimal.py', 'PYMODULE'),
