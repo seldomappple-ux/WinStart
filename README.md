@@ -1,6 +1,7 @@
 # WinStart
 
 WinStart 是一款轻量级的 Windows 一键启动工具，专为创作者和极简主义者设计。它可以帮助你快速启动整套工作流软件，无需在混乱的桌面或开始菜单中寻找程序。
+<img width="1367" height="808" alt="image" src="https://github.com/user-attachments/assets/bb6dff33-d056-4be2-87cf-56ce0530aa5f" />
 
 ## ✨ 特性
 
