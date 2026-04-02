@@ -1,0 +1,106 @@
+rules:
+  - rule_id: governance.entrypoint
+    title: Unified governance entrypoint
+    body: Root AGENTS.md is the stable human entrypoint. Treat .agents/ as the canonical source tree for profile, local rules, structured overrides, and progress records.
+    body_zh: 根目录 AGENTS.md 是稳定的人类入口, `.agents/` 是 profile、本地规则、结构化 override 与 progress 记录的规范真源目录.
+    scope: governance
+    priority: 10
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: governance.managed_outputs
+    title: Managed outputs are generated
+    body: Do not edit generated adapter files directly. Apply durable changes in .agents/profile.yaml, .agents/overrides/rules.yaml, or canonical upstream templates, then rerender.
+    body_zh: 不要直接编辑生成的适配文件. 持久规则变更应写入 `.agents/profile.yaml`、`.agents/overrides/rules.yaml` 或上游 canonical 模板, 然后重新渲染.
+    scope: governance
+    priority: 20
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: governance.onboarding_sequence
+    title: Onboarding reads local context first
+    body: When taking over the repository, read README.md, docs/SOURCE_MATERIALS.md, ARCHITECTURE.md, and .agents/PROGRESS.md before relying on generated adapter files. Align on local context first, then act.
+    body_zh: 接手仓库时, 先阅读 README.md、docs/SOURCE_MATERIALS.md、ARCHITECTURE.md 和 .agents/PROGRESS.md, 再依赖生成的适配文件. 先对齐本地上下文, 再执行修改.
+    scope: governance
+    priority: 25
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: git.flow
+    title: Git Flow is mandatory
+    body: Use a Git Flow style branch strategy with at least main and dev. Feature and release work should branch from dev unless a project-specific workflow overlay says otherwise.
+    body_zh: 使用 Git Flow 风格的分支策略, 至少包含 main 与 dev. 除非项目 overlay 另有规定, feature 与 release 工作应从 dev 分出.
+    scope: git
+    priority: 30
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: git.conventional_commits
+    title: Conventional commits only
+    body: Commit messages must follow Angular or Conventional Commit format. Progress entries must always record Related Commit Message and should also record Related Commit Hash.
+    body_zh: Commit message 必须符合 Angular 或 Conventional Commit 规范. Progress entry 必须记录 Related Commit Message, 并建议记录 Related Commit Hash.
+    scope: git
+    priority: 40
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: comments.language
+    title: Comment language follows profile
+    body: Code comments must follow the configured comment language in profile.yaml. Use English comments for English projects, and use Chinese comments with half-width punctuation for Chinese projects.
+    body_zh: 代码注释必须遵循 profile.yaml 中配置的注释语言. 英文项目使用英文注释, 中文项目允许中文注释, 但应使用半角标点.
+    scope: code
+    priority: 50
+    immutable: false
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: code.architecture
+    title: High cohesion and low coupling
+    body: Prefer high cohesion, low coupling, clear module boundaries, and concise Doxygen-style API comments when the language or framework supports them.
+    body_zh: 优先采用高内聚、低耦合、清晰的模块边界, 并在语言或框架支持时使用简洁的 Doxygen 风格 API 注释.
+    scope: code
+    priority: 60
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: docs.split
+    title: User and developer docs are separate
+    body: User documentation and developer documentation must remain separate. The root documentation should link to quick start, deployment, and developer-facing references instead of mixing all detail into one file.
+    body_zh: 用户文档与开发文档必须分离. 根文档应链接到快速开始、部署说明与开发资料, 不应把全部细节混在一个文件里.
+    scope: docs
+    priority: 70
+    immutable: false
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: docs.directory_readme
+    title: Stable directories need Chinese explainer files
+    body: Every stable manually maintained directory must include a Chinese Markdown explainer file, preferably `README_中文.md`. A Chinese `README.md` also counts if it already explains the directory's purpose. Skip VCS internals, caches, and generated transient directories.
+    body_zh: 每个稳定且人工维护的目录都必须包含一份中文 Markdown 说明文件, 默认使用 `README_中文.md`. 如果目录里已经有承担目录说明职责的中文 `README.md`, 也可视为满足要求. Git 内部目录、缓存目录和生成态临时目录除外.
+    scope: docs
+    priority: 75
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: progress.lifecycle
+    title: Progress lifecycle is structured
+    body: Progress entries must move through draft, promotable, and upstreamed states. PROGRESS.md is a sliding index, not a full transcript. Archive older or upstreamed entries instead of expanding the index forever.
+    body_zh: Progress entry 必须经历 draft、promotable、upstreamed 三种状态. PROGRESS.md 是滑动索引, 不是完整流水账. 较旧或已沉淀的条目应归档, 不应无限膨胀.
+    scope: progress
+    priority: 80
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+  - rule_id: copilot.style
+    title: Copilot should stay concise
+    body: Copilot-facing instructions should stay concise, prefer direct edits over long explanations, and prioritize file-level consistency over speculative rewrites.
+    body_zh: 面向 Copilot 的指令应保持简洁, 优先直接修改而不是长篇解释, 并优先保证文件级一致性而不是做猜测式重写.
+    scope: adapter
+    priority: 90
+    immutable: false
+    adapters: [copilot]
+  - rule_id: cursor.review
+    title: Cursor rules should bias toward reviewable changes
+    body: Cursor rules should emphasize reviewable diffs, preserve existing repository conventions, and avoid broad rewrites unless the task explicitly calls for them.
+    body_zh: Cursor 规则应偏向可评审的 diff, 保持仓库既有约定, 除非任务明确要求, 否则避免大范围重写.
+    scope: adapter
+    priority: 100
+    immutable: false
+    adapters: [cursor]
+  - rule_id: mcp.placeholder
+    title: MCP is reserved for phase 2 overlays
+    body: MCP can be enabled in profile.yaml, but v1 only emits placeholder guidance and validation. Do not invent hardware tool contracts until a project-specific overlay defines them.
+    body_zh: MCP 可以在 profile.yaml 中启用, 但 v1 只提供占位说明与校验. 在项目级 overlay 明确定义之前, 不要擅自发明硬件工具契约.
+    scope: mcp
+    priority: 110
+    immutable: true
+    adapters: [root, copilot, cursor, claude, gemini, opencode]
+    requires_mcp: true

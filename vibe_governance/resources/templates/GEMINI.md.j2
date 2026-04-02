@@ -1,0 +1,27 @@
+# GEMINI / Gemini 适配说明
+
+{% if is_bilingual -%}
+这是一个轻量适配文件. 请先阅读 `AGENTS.md`, 再查看 `.agents/` 中的结构化配置.
+
+This is a thin adapter file. Read `AGENTS.md` first, then consult `.agents/` for structured configuration.
+{% else -%}
+This is a thin adapter file. Read `AGENTS.md` first, then consult `.agents/` for structured configuration.
+{% endif %}
+
+{% if is_bilingual -%}
+当前项目版本: `{{ profile.project_version }}`
+
+Current project version: `{{ profile.project_version }}`
+{% else -%}
+Current project version: `{{ profile.project_version }}`
+{% endif %}
+
+{% for rule in rules -%}
+{% if is_bilingual -%}
+- `{{ rule.rule_id }}`:
+  中文: {{ rule.body_zh }}
+  English: {{ rule.body }}
+{% else -%}
+- `{{ rule.rule_id }}`: {{ rule.body }}
+{% endif %}
+{% endfor %}

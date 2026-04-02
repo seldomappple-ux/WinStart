@@ -1,0 +1,50 @@
+# AGENTS / 代理总则
+
+{% if is_bilingual -%}
+本仓库使用确定性治理栈. 请保持本文件简洁, 并将 `.agents/` 目录视为规范真源.
+
+This repository uses a deterministic governance stack. Keep this file short and treat `.agents/` as the source of truth.
+{% else -%}
+This repository uses a deterministic governance stack. Keep this file short and treat `.agents/` as the source of truth.
+{% endif %}
+
+## Profile / 配置
+
+- `project_type`: `{{ profile.project_type }}`
+- `project_version`: `{{ profile.project_version }}`
+- `project_lang`: `{{ profile.project_lang }}`
+- `comment_lang`: `{{ profile.comment_lang }}`
+- `doc_mode`: `{{ profile.doc_mode }}`
+- `agent_adapters`: `{{ profile.agent_adapters | join(', ') }}`
+- `upstream.repo`: `{{ profile.upstream.repo }}`
+- `upstream.version`: `{{ profile.upstream.version }}`
+- `upstream.sync_strategy`: `{{ profile.upstream.sync_strategy }}`
+- `mcp.enabled`: `{{ profile.mcp.enabled }}`
+
+## Source Of Truth / 规范真源
+
+{% for source in known_sources -%}
+- `{{ source }}`
+{% endfor %}
+
+## Core Rules / 核心规则
+
+{% for rule in rules -%}
+### `{{ rule.rule_id }}`
+{% if is_bilingual -%}
+- 中文: {{ rule.body_zh }}
+- English: {{ rule.body }}
+{% else -%}
+{{ rule.body }}
+{% endif %}
+
+{% endfor -%}
+## Generated Outputs / 生成输出
+
+- `.github/copilot-instructions.md` when `copilot` is enabled / 启用 `copilot` 时生成
+- `.github/instructions/project-governance.instructions.md` when `copilot` is enabled / 启用 `copilot` 时生成
+- `.cursor/rules/governance.mdc` when `cursor` is enabled / 启用 `cursor` 时生成
+- `CLAUDE.md` when `claude` is enabled / 启用 `claude` 时生成
+- `GEMINI.md` when `gemini` is enabled / 启用 `gemini` 时生成
+- `.opencode/AGENTS.md` when `opencode` is enabled / 启用 `opencode` 时生成
+- `.agents/PROGRESS.md` on every render / 每次渲染都会更新

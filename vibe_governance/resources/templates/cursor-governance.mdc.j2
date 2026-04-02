@@ -1,0 +1,18 @@
+---
+description: Core governance rules for this repository.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# Cursor Governance
+
+Current project version: `{{ profile.project_version }}`
+
+{% for rule in rules -%}
+## `{{ rule.rule_id }}`
+{{ rule.body }}
+
+{% endfor %}
+
+Keep changes reviewable and route durable policy changes back through `.agents/` instead of patching generated rule files.

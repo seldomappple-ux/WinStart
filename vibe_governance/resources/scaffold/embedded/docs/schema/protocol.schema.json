@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Embedded protocol placeholder",
+  "project_version": "__PROJECT_VERSION__",
+  "type": "object",
+  "description": "Replace this placeholder schema before real protocol implementation starts.",
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "command"
+  ]
+}

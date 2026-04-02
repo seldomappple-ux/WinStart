@@ -1,0 +1,11 @@
+# Project Governance Instructions
+
+This file exists for GitHub-specific instruction routing. Keep it aligned with `AGENTS.md` and do not add repository-only rules here.
+
+Current project version: `{{ profile.project_version }}`
+
+{% for rule in rules -%}
+## `{{ rule.rule_id }}`
+{{ rule.body }}
+
+{% endfor %}

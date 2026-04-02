@@ -1,0 +1,24 @@
+project_type: governance
+project_version: __PROJECT_VERSION__
+project_lang: zh
+comment_lang: zh
+doc_mode: bilingual
+agent_adapters:
+  - copilot
+  - cursor
+  - claude
+  - gemini
+  - opencode
+upstream:
+  repo: __UPSTREAM_REPO__
+  version: __UPSTREAM_VERSION__
+  sync_strategy: manual
+override_whitelist:
+  - comments.language
+  - docs.split
+  - copilot.style
+  - cursor.review
+mcp:
+  enabled: false
+  config_path: .agents/mcp/config.yaml
+  allowed_tools: []

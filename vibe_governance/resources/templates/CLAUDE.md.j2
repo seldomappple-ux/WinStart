@@ -1,0 +1,35 @@
+# CLAUDE / Claude 适配说明
+
+{% if is_bilingual -%}
+这是一个轻量适配文件. 稳定治理入口是 `AGENTS.md`.
+
+This is a thin adapter file. The stable governance entrypoint is `AGENTS.md`.
+{% else -%}
+This is a thin adapter file. The stable governance entrypoint is `AGENTS.md`.
+{% endif %}
+
+{% if is_bilingual -%}
+当前项目版本: `{{ profile.project_version }}`
+
+Current project version: `{{ profile.project_version }}`
+{% else -%}
+Current project version: `{{ profile.project_version }}`
+{% endif %}
+
+{% for rule in rules -%}
+{% if is_bilingual -%}
+- `{{ rule.rule_id }}`:
+  中文: {{ rule.body_zh }}
+  English: {{ rule.body }}
+{% else -%}
+- `{{ rule.rule_id }}`: {{ rule.body }}
+{% endif %}
+{% endfor %}
+
+{% if is_bilingual -%}
+如需持久修改治理规则, 请更新 `.agents/` 源文件后重新渲染, 不要直接编辑本文件.
+
+Before making durable policy changes, update `.agents/` sources and rerender instead of editing this file directly.
+{% else -%}
+Before making durable policy changes, update `.agents/` sources and rerender instead of editing this file directly.
+{% endif %}

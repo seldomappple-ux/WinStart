@@ -1,0 +1,31 @@
+# PROGRESS
+
+## Project Version
+
+- Current project version: `{{ profile.project_version }}`
+
+## Purpose
+
+Use this file as a sliding index, not a long-form journal. Detailed history lives under `{{ entries_dir }}` and `{{ archive_dir }}`.
+
+## Active Architecture Decisions
+
+| ID | Status | Title | Summary |
+| --- | --- | --- | --- |
+{% for decision in decisions -%}
+| `{{ decision.decision_id }}` | `{{ decision.status }}` | {{ decision.title }} | {{ decision.summary }} |
+{% endfor %}
+
+## Active Entries
+
+| Page ID | Date | Title | Status | Path | Related Commit Message |
+| --- | --- | --- | --- | --- | --- |
+{% for entry in active_entries -%}
+| `{{ entry.page_id }}` | `{{ entry.entry_date }}` | {{ entry.title }} | `{{ entry.status }}` | `{{ entry.relative_path }}` | {{ entry.related_commit_message }} |
+{% endfor %}
+
+## Archive
+
+- Active entries older than the latest 10 should remain in `{{ entries_dir }}` and be located by search or tooling.
+- Entries that have already been promoted upstream belong in `{{ archive_dir }}`.
+- Upstream promotion must go through human-reviewed pull requests.

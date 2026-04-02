@@ -1,0 +1,13 @@
+decisions:
+  - id: ADR-0001
+    title: Deterministic adapter generation
+    status: active
+    summary: Adapter files are rendered by the Python CLI from structured sources. LLM output is never used as a translation layer.
+  - id: ADR-0002
+    title: Managed outputs stay read-only
+    status: active
+    summary: Durable policy changes must flow through .agents source files and the canonical rule catalog, not direct edits to generated adapters.
+  - id: ADR-0003
+    title: Sliding-window progress index
+    status: active
+    summary: PROGRESS.md only tracks current architecture decisions and the latest active entries, while older or upstreamed records stay searchable on disk.
