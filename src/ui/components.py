@@ -11,7 +11,12 @@ from PySide6.QtGui import QIcon, QFont, QColor, QCursor, QPainter, QBrush, QPen,
 from src.ui.icon_loader import IconLoader
 from PySide6.QtGui import QPixmap, QImage
 
+_grayscale_cache: dict = {}
+
 def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
+    key = id(pixmap.toImage())  # fast cache key
+    if key in _grayscale_cache:
+        return _grayscale_cache[key]
     image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
     for y in range(image.height()):
         for x in range(image.width()):
@@ -23,7 +28,9 @@ def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
             gray = int(0.299 * r + 0.587 * g + 0.114 * b)
             dimmed = int(gray * 0.45)
             image.setPixel(x, y, (alpha << 24) | (dimmed << 16) | (dimmed << 8) | dimmed)
-    return QPixmap.fromImage(image)
+    result = QPixmap.fromImage(image)
+    _grayscale_cache[key] = result
+    return result
 
 
 class ToggleMenuRow(QWidget):
@@ -42,11 +49,12 @@ class ToggleMenuRow(QWidget):
         icon_label = QLabel()
         icon_label.setPixmap(IconLoader.get_pixmap(item.get("path", ""), 20))
         icon_label.setFixedSize(20, 20)
+        icon_label.setStyleSheet("background: transparent;")
         layout.addWidget(icon_label)
 
         self.name_label = QLabel(item["name"])
         self.name_label.setStyleSheet(
-            "color: #E0E0E0;" if item.get("enabled", True) else "color: #8A8A8A;"
+            "color: #E0E0E0; background: transparent;" if item.get("enabled", True) else "color: #8A8A8A; background: transparent;"
         )
         self.name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout.addWidget(self.name_label)
@@ -100,7 +108,7 @@ class ToggleMenuRow(QWidget):
         self.knob.move(x, y)
 
     def _on_toggled(self, checked):
-        self.name_label.setStyleSheet("color: #E0E0E0;" if checked else "color: #8A8A8A;")
+        self.name_label.setStyleSheet("color: #E0E0E0; background: transparent;" if checked else "color: #8A8A8A; background: transparent;")
         self._update_knob()
         self.toggled.emit(self.item_id, checked)
 
@@ -146,8 +154,18 @@ class PhysicsIconWidget(QWidget):
                 "trail": []
             })
             
-        self.update_layout() # Ensure layout is correct
+        self.update_layout()
         self.update()
+
+    def update_item_enabled(self, item_id: str, enabled: bool):
+        for i, item in enumerate(self.items):
+            if item["id"] == item_id:
+                item["enabled"] = enabled
+                pixmap = IconLoader.get_pixmap(item.get("path", ""), self.icon_size)
+                self.balls[i]["icon"] = pixmap if enabled else _make_grayscale_pixmap(pixmap)
+                self.balls[i]["enabled"] = enabled
+                self.update()
+                return
 
     def resizeEvent(self, event):
         self.update_layout()
@@ -786,7 +804,7 @@ class LaunchCard(QFrame):
                 item["enabled"] = enabled
                 break
         self.toggle_item_requested.emit(self.slot_id, item_id, enabled)
-        self.icon_widget.set_items(self.items)
+        self.icon_widget.update_item_enabled(item_id, enabled)
 
     def update_data(self, slot_data):
         self.slot_data = slot_data
