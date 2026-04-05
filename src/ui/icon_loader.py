@@ -10,6 +10,7 @@ import tempfile
 
 class IconLoader:
     _provider = QFileIconProvider()
+    _pixmap_cache = {}
     
     @staticmethod
     def get_icon(path: str) -> QIcon:
@@ -112,7 +113,11 @@ class IconLoader:
     @staticmethod
     def get_pixmap(path: str, size: int = 64) -> QPixmap:
         """获取指定大小的图标 Pixmap，优先尝试获取高分辨率图标并进行智能缩放。"""
-        
+        cache_key = (os.path.normcase(path), int(size))
+        cached = IconLoader._pixmap_cache.get(cache_key)
+        if cached is not None and not cached.isNull():
+            return cached
+
         real_path = path
         # 解析快捷方式
         if sys.platform == "win32" and path.lower().endswith(".lnk"):
@@ -141,7 +146,8 @@ class IconLoader:
             # 如果返回的是默认小尺寸 (如 32x32)，直接拉伸会模糊
             # 但 smart_scale 会处理裁剪，然后缩放
             pixmap = IconLoader.smart_scale(raw_pixmap, size)
-        
+
+        IconLoader._pixmap_cache[cache_key] = pixmap
         return pixmap
 
     @staticmethod

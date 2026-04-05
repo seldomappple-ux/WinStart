@@ -14,7 +14,7 @@ from PySide6.QtGui import QPixmap, QImage
 _grayscale_cache: dict = {}
 
 def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
-    key = id(pixmap.toImage())  # fast cache key
+    key = pixmap.cacheKey()
     if key in _grayscale_cache:
         return _grayscale_cache[key]
     image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
@@ -36,7 +36,7 @@ def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
 class ToggleMenuRow(QWidget):
     toggled = Signal(str, bool)
 
-    def __init__(self, item, parent=None):
+    def __init__(self, item, icon_pixmap=None, parent=None):
         super().__init__(parent)
         self.item_id = item["id"]
         self.setObjectName("ToggleMenuRow")
@@ -47,7 +47,7 @@ class ToggleMenuRow(QWidget):
         layout.setSpacing(10)
 
         icon_label = QLabel()
-        icon_label.setPixmap(IconLoader.get_pixmap(item.get("path", ""), 20))
+        icon_label.setPixmap(icon_pixmap or IconLoader.get_pixmap(item.get("path", ""), 20))
         icon_label.setFixedSize(20, 20)
         icon_label.setStyleSheet("background: transparent;")
         layout.addWidget(icon_label)
@@ -352,10 +352,9 @@ class PhysicsIconWidget(QWidget):
 
         # Draw Icons
         for i, ball in enumerate(self.balls):
-            
             pixmap = ball["icon"]
-            x = ball["x"] - self.icon_size / 2
-            y = ball["y"] - self.icon_size / 2
+            x = ball["x"] - pixmap.width() / 2
+            y = ball["y"] - pixmap.height() / 2
             painter.drawPixmap(int(x), int(y), pixmap)
 
 class ThreeDotsButton(QPushButton):
@@ -462,6 +461,7 @@ class LaunchCard(QFrame):
         self.hovering = False
         self.is_launching = False
         self.menu_active = False  # Flag to keep animation running when menu is open
+        self.menu_icon_cache = {}
         
         # Data
         self.items = slot_data.get("items", [])
@@ -517,6 +517,7 @@ class LaunchCard(QFrame):
         # self.layout.addWidget(self.status_label)
 
     def refresh_icons(self):
+        self.menu_icon_cache = {}
         if not self.items:
             self.icon_widget.setVisible(False)
             # self.empty_label.setVisible(True) # Removed
@@ -524,6 +525,16 @@ class LaunchCard(QFrame):
             self.icon_widget.setVisible(True)
             # self.empty_label.setVisible(False) # Removed
             self.icon_widget.set_items(self.items)
+            for item in self.items:
+                path = item.get("path", "")
+                if path not in self.menu_icon_cache:
+                    base_pixmap = IconLoader.get_pixmap(path, self.icon_widget.icon_size)
+                    self.menu_icon_cache[path] = base_pixmap.scaled(
+                        20,
+                        20,
+                        Qt.KeepAspectRatio,
+                        Qt.SmoothTransformation,
+                    )
 
     def setup_animations(self):
         # Background Color Animation
@@ -770,7 +781,11 @@ class LaunchCard(QFrame):
         if self.items:
             for item in self.items:
                 row_action = QWidgetAction(menu)
-                row_widget = ToggleMenuRow(item, menu)
+                row_widget = ToggleMenuRow(
+                    item,
+                    self.menu_icon_cache.get(item.get("path", "")),
+                    menu,
+                )
                 row_widget.toggled.connect(self.handle_toggle_item)
                 row_action.setDefaultWidget(row_widget)
                 menu.addAction(row_action)
