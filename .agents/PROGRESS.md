@@ -3,7 +3,7 @@ managed-by: vibe-governance 0.1.0
 upstream-repo: D:\code\VS Code\Taotaotao
 upstream-version: 0.1.0
 upstream-published-at: 2026-03-07T00:00:00Z
-checksum-sha256: 55af7914089d2ed7892da6f9aadbb98b13853c5be8c8967c6ece15cf32517d12
+checksum-sha256: 75d0c47beff8e7fa91de240689bf35a6707cd577e977b1b3f7e1e5072ba4e3eb
 managed-note-en: DO NOT EDIT DIRECTLY. Regenerate with `vibe-governance render`.
 managed-note-zh: 请勿直接编辑此文件, 请运行 `vibe-governance render` 重新生成.
 -->
@@ -27,6 +27,9 @@ Use this file as a sliding index, not a long-form journal. Detailed history live
 
 | Page ID | Date | Title | Status | Path | Related Commit Message |
 | --- | --- | --- | --- | --- | --- |
+| `WS-2026-04-05-008` | `2026-04-05` | 首屏骨架与延后图标加载 | `draft` | `.agents/progress/entries/2026/2026-04-05-startup-skeleton-loading.md` | perf(ui): show card skeletons before deferred icon loading |
+| `WS-2026-04-05-007` | `2026-04-05` | 图标磁盘缓存优化首开性能 | `draft` | `.agents/progress/entries/2026/2026-04-05-icon-disk-cache.md` | feat(perf): add persistent disk cache for extracted icons |
+| `WS-2026-04-05-006` | `2026-04-05` | 首次启动卡顿原因分析 | `draft` | `.agents/progress/entries/2026/2026-04-05-startup-lag-analysis.md` | docs(perf): record startup lag root cause analysis |
 | `WS-2026-04-05-005` | `2026-04-05` | 安装器版本与启动项注册 | `draft` | `.agents/progress/entries/2026/2026-04-05-installer-startup.md` | feat(installer): build setup exe and register startup option during install |
 | `WS-2026-04-05-004` | `2026-04-05` | 三个 UI bug 修复 | `promotable` | `.agents/progress/entries/2026/2026-04-05-ui-bugs.md` | fix(ui): grayscale position, icon label bg, toggle lag |
 | `WS-2026-04-05-003` | `2026-04-05` | 软件开关菜单交互回归修复 | `draft` | `.agents/progress/entries/2026/2026-04-05-toggle-menu-regression.md` | fix(ui): flatten toggle menu and keep it open for batch changes |

@@ -446,7 +446,7 @@ class LaunchCard(QFrame):
     edit_requested = Signal(str)
     toggle_item_requested = Signal(str, str, bool)  # slot_id, item_id, enabled
 
-    def __init__(self, slot_data, parent=None):
+    def __init__(self, slot_data, parent=None, defer_load=False):
         super().__init__(parent)
         self.slot_data = slot_data
         self.setObjectName("LaunchCard")
@@ -462,11 +462,13 @@ class LaunchCard(QFrame):
         self.is_launching = False
         self.menu_active = False  # Flag to keep animation running when menu is open
         self.menu_icon_cache = {}
+        self.icons_loaded = False
         
         # Data
         self.items = slot_data.get("items", [])
         self.slot_id = slot_data.get("id")
         self.slot_name = slot_data.get("name", "未命名")
+        self.defer_load = defer_load
 
         self.setup_ui()
         self.setup_animations()
@@ -495,6 +497,13 @@ class LaunchCard(QFrame):
         self.content_area.setStyleSheet("background: transparent;")
         self.content_layout = QVBoxLayout(self.content_area)
         self.content_layout.setAlignment(Qt.AlignCenter)
+
+        self.placeholder_label = QLabel("加载中...")
+        self.placeholder_label.setAlignment(Qt.AlignCenter)
+        self.placeholder_label.setStyleSheet(
+            "color: #666666; font-size: 16px; background: transparent;"
+        )
+        self.content_layout.addWidget(self.placeholder_label)
         
         self.icon_widget = PhysicsIconWidget()
         self.content_layout.addWidget(self.icon_widget)
@@ -507,8 +516,11 @@ class LaunchCard(QFrame):
         # self.content_layout.addWidget(self.empty_label)
 
         self.layout.addWidget(self.content_area, stretch=1)
-        
-        self.refresh_icons()
+
+        if self.defer_load:
+            self.set_loading_state(True)
+        else:
+            self.load_card_content()
         
         # Status Label (Removed as requested)
         # self.status_label = QLabel("一键启动")
@@ -516,14 +528,24 @@ class LaunchCard(QFrame):
         # self.status_label.setStyleSheet("color: #888888; font-size: 12px; background: transparent;")
         # self.layout.addWidget(self.status_label)
 
-    def refresh_icons(self):
+    def set_loading_state(self, loading):
+        if loading:
+            self.placeholder_label.setVisible(bool(self.items))
+            self.icon_widget.setVisible(False)
+            return
+
+        self.placeholder_label.setVisible(False)
+        self.icon_widget.setVisible(bool(self.items))
+
+    def load_card_content(self):
+        if self.icons_loaded:
+            return
+
         self.menu_icon_cache = {}
         if not self.items:
-            self.icon_widget.setVisible(False)
-            # self.empty_label.setVisible(True) # Removed
+            self.icons_loaded = True
+            self.set_loading_state(False)
         else:
-            self.icon_widget.setVisible(True)
-            # self.empty_label.setVisible(False) # Removed
             self.icon_widget.set_items(self.items)
             for item in self.items:
                 path = item.get("path", "")
@@ -535,6 +557,8 @@ class LaunchCard(QFrame):
                         Qt.KeepAspectRatio,
                         Qt.SmoothTransformation,
                     )
+            self.icons_loaded = True
+            self.set_loading_state(False)
 
     def setup_animations(self):
         # Background Color Animation
@@ -655,7 +679,8 @@ class LaunchCard(QFrame):
             if self.pulse_anim.state() != QPropertyAnimation.Running:
                 self.pulse_anim.start()
             self.update()
-            self.icon_widget.set_active(True)
+            if self.icons_loaded:
+                self.icon_widget.set_active(True)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
@@ -663,7 +688,8 @@ class LaunchCard(QFrame):
             self.hovering = False
             self.pulse_anim.stop()
             self.update()
-            self.icon_widget.set_active(False)
+            if self.icons_loaded:
+                self.icon_widget.set_active(False)
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
@@ -726,6 +752,9 @@ class LaunchCard(QFrame):
         # self.status_label.setStyleSheet("color: #888888; background: transparent;")
 
     def show_menu(self):
+        if not self.icons_loaded:
+            self.load_card_content()
+
         self.menu_active = True
         self.menu_btn.set_active(True) # Keep button lit
         
@@ -819,14 +848,19 @@ class LaunchCard(QFrame):
                 item["enabled"] = enabled
                 break
         self.toggle_item_requested.emit(self.slot_id, item_id, enabled)
-        self.icon_widget.update_item_enabled(item_id, enabled)
+        if self.icons_loaded:
+            self.icon_widget.update_item_enabled(item_id, enabled)
 
     def update_data(self, slot_data):
         self.slot_data = slot_data
         self.items = slot_data.get("items", [])
         self.slot_name = slot_data.get("name", "未命名")
         self.title_label.setText(self.slot_name)
-        self.refresh_icons()
+        self.icons_loaded = False
+        if self.defer_load:
+            self.set_loading_state(True)
+        else:
+            self.load_card_content()
 
 
 class ItemEditorDialog(QDialog):
