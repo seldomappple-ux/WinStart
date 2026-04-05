@@ -72,7 +72,8 @@ class ConfigManager:
                     "name": name,
                     "path": path,
                     "args": args,
-                    "delay": delay
+                    "delay": delay,
+                    "enabled": True
                 }
                 slot.setdefault("items", []).append(new_item)
                 self._save_data()
@@ -95,6 +96,16 @@ class ConfigManager:
                         item["path"] = path
                         item["args"] = args
                         item["delay"] = delay
+                        item.setdefault("enabled", True)
+                        self._save_data()
+                        return
+
+    def toggle_item_enabled(self, slot_id: str, item_id: str, enabled: bool):
+        for slot in self.data.get("slots", []):
+            if slot["id"] == slot_id:
+                for item in slot.get("items", []):
+                    if item["id"] == item_id:
+                        item["enabled"] = enabled
                         self._save_data()
                         return
 

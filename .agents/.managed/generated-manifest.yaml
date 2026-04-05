@@ -1,0 +1,21 @@
+managed_by: vibe-governance 0.1.0
+upstream_repo: D:\code\VS Code\Taotaotao
+upstream_version: 0.1.0
+upstream_published_at: '2026-03-07T00:00:00Z'
+files:
+- path: .agents/PROGRESS.md
+  checksum: 4e5f4443427e8bfffc36700957f016442a8d72427c6ca216463ee53e054554d9
+- path: .cursor/rules/governance.mdc
+  checksum: 7cbb3fc460815316178ab6256eb6bbde1a52929e02cf328c6e4911f956cd2fe1
+- path: .github/copilot-instructions.md
+  checksum: 6551b6063ac5b9fe539e4e22906fd24bb6b6b7dbe164a58026f36dd95385ba78
+- path: .github/instructions/project-governance.instructions.md
+  checksum: 47d5ff586a77ce01ed60b4440e4d13be8477cad6aa281803f3e9f610d3061ec5
+- path: .opencode/AGENTS.md
+  checksum: a6ae0688c9f993849363fa9f441b7e69be146d9f783ccb1aba4dc63c5ae26559
+- path: AGENTS.md
+  checksum: b8b4911f9d1df2c7332a4d4ca2fe812eeb92e2ea7f725a2737435256181795d6
+- path: CLAUDE.md
+  checksum: 84d735441bcc6d82bd8e2aea7467319da42adaa060beebb7050311f661e783aa
+- path: GEMINI.md
+  checksum: e4510b9bda54ad9cccd612575ef107f5ce7da9167abd464ba21639c6f98871c2

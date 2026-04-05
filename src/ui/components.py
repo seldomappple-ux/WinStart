@@ -3,11 +3,106 @@ import math
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
     QSizePolicy, QFileDialog, QLineEdit, QDialog, QFormLayout, QDialogButtonBox,
-    QScrollArea, QGraphicsOpacityEffect, QListWidget, QListWidgetItem, QMenu
+    QScrollArea, QGraphicsOpacityEffect, QListWidget, QListWidgetItem, QMenu,
+    QCheckBox, QWidgetAction
 )
 from PySide6.QtCore import Qt, Signal, QSize, QPropertyAnimation, QEasingCurve, QTimer, QPoint, QRect, QRectF, Property, QPointF
 from PySide6.QtGui import QIcon, QFont, QColor, QCursor, QPainter, QBrush, QPen, QPainterPath, QRadialGradient
 from src.ui.icon_loader import IconLoader
+from PySide6.QtGui import QPixmap, QImage
+
+def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
+    image = pixmap.toImage().convertToFormat(QImage.Format_ARGB32)
+    for y in range(image.height()):
+        for x in range(image.width()):
+            c = image.pixel(x, y)
+            alpha = (c >> 24) & 0xFF
+            r = (c >> 16) & 0xFF
+            g = (c >> 8) & 0xFF
+            b = c & 0xFF
+            gray = int(0.299 * r + 0.587 * g + 0.114 * b)
+            dimmed = int(gray * 0.45)
+            image.setPixel(x, y, (alpha << 24) | (dimmed << 16) | (dimmed << 8) | dimmed)
+    return QPixmap.fromImage(image)
+
+
+class ToggleMenuRow(QWidget):
+    toggled = Signal(str, bool)
+
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self.item_id = item["id"]
+        self.setObjectName("ToggleMenuRow")
+        self.setCursor(Qt.PointingHandCursor)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(10)
+
+        icon_label = QLabel()
+        icon_label.setPixmap(IconLoader.get_pixmap(item.get("path", ""), 20))
+        icon_label.setFixedSize(20, 20)
+        layout.addWidget(icon_label)
+
+        self.name_label = QLabel(item["name"])
+        self.name_label.setStyleSheet(
+            "color: #E0E0E0;" if item.get("enabled", True) else "color: #8A8A8A;"
+        )
+        self.name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        layout.addWidget(self.name_label)
+
+        self.toggle = QCheckBox()
+        self.toggle.setChecked(item.get("enabled", True))
+        self.toggle.setCursor(Qt.PointingHandCursor)
+        self.toggle.setStyleSheet("""
+            QCheckBox {
+                spacing: 0px;
+            }
+            QCheckBox::indicator {
+                width: 38px;
+                height: 22px;
+                border-radius: 11px;
+                background-color: #3A3A3A;
+                border: 1px solid #4A4A4A;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #1F7A45;
+                border: 1px solid #4CAF50;
+            }
+        """)
+        self.toggle.toggled.connect(self._on_toggled)
+        layout.addWidget(self.toggle)
+
+        # The knob is drawn as a lightweight overlay instead of relying on platform style.
+        self.knob = QFrame(self)
+        self.knob.setFixedSize(16, 16)
+        self.knob.setStyleSheet("background-color: #F5F5F5; border-radius: 8px;")
+        self.knob.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._update_knob()
+
+    def resizeEvent(self, event):
+        self._update_knob()
+        super().resizeEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and self.childAt(event.pos()) is not self.toggle:
+            self.toggle.toggle()
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+    def _update_knob(self):
+        indicator = self.toggle.geometry()
+        if indicator.isNull():
+            return
+        x = indicator.x() + (19 if self.toggle.isChecked() else 3)
+        y = indicator.y() + 3
+        self.knob.move(x, y)
+
+    def _on_toggled(self, checked):
+        self.name_label.setStyleSheet("color: #E0E0E0;" if checked else "color: #8A8A8A;")
+        self._update_knob()
+        self.toggled.emit(self.item_id, checked)
 
 class PhysicsIconWidget(QWidget):
     def __init__(self, parent=None):
@@ -38,16 +133,17 @@ class PhysicsIconWidget(QWidget):
         start_x = center_x - total_width / 2 + self.icon_size / 2
         
         for i, item in enumerate(items):
-            # Target static position
             target_x = start_x + i * (self.icon_size + 10)
-            
+            enabled = item.get("enabled", True)
+            pixmap = IconLoader.get_pixmap(item.get("path", ""), self.icon_size)
             self.balls.append({
-                "x": target_x, "y": center_y, # Start at static pos
+                "x": target_x, "y": center_y,
                 "vx": 0, "vy": 0,
                 "target_x": target_x, "target_y": center_y,
                 "state": "static",
-                "icon": IconLoader.get_pixmap(item.get("path", ""), self.icon_size),
-                "trail": [] 
+                "icon": pixmap if enabled else _make_grayscale_pixmap(pixmap),
+                "enabled": enabled,
+                "trail": []
             })
             
         self.update_layout() # Ensure layout is correct
@@ -196,7 +292,7 @@ class PhysicsIconWidget(QWidget):
                             other["vy"] += dot * ny
 
             # Trail Logic
-            if ball["state"] != "static":
+            if ball["state"] != "static" and ball.get("enabled", True):
                 ball["trail"].insert(0, (ball["x"], ball["y"], 1.0))
                 if len(ball["trail"]) > 15: 
                     ball["trail"].pop()
@@ -218,9 +314,11 @@ class PhysicsIconWidget(QWidget):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
-        # Draw Trails
+        # Draw Trails (only enabled balls)
         if self.active:
             for ball in self.balls:
+                if not ball.get("enabled", True):
+                    continue
                 for i, (x, y, alpha) in enumerate(ball["trail"]):
                     if alpha < 0.05: continue
                     
@@ -327,8 +425,9 @@ class ThreeDotsButton(QPushButton):
                 painter.setOpacity(1.0)
 
 class LaunchCard(QFrame):
-    launch_requested = Signal(list) # Emits list of items to launch
-    edit_requested = Signal(str)    # Emits slot_id
+    launch_requested = Signal(list)
+    edit_requested = Signal(str)
+    toggle_item_requested = Signal(str, str, bool)  # slot_id, item_id, enabled
 
     def __init__(self, slot_data, parent=None):
         super().__init__(parent)
@@ -635,16 +734,35 @@ class LaunchCard(QFrame):
                 background: #333333;
                 margin: 4px 10px;
             }
+            QWidget#ToggleMenuRow {
+                background: transparent;
+                border: 1px solid transparent;
+                border-radius: 6px;
+            }
+            QWidget#ToggleMenuRow:hover {
+                background-color: rgba(105, 240, 174, 24);
+                border: 1px solid rgba(105, 240, 174, 60);
+            }
         """)
         
         edit_action = menu.addAction("编辑配置")
-        rename_action = menu.addAction("重命名卡槽")
-        
-        # Position menu elegantly
+        menu.addSeparator()
+        section_action = menu.addAction("软件开关")
+        section_action.setEnabled(False)
+        if self.items:
+            for item in self.items:
+                row_action = QWidgetAction(menu)
+                row_widget = ToggleMenuRow(item, menu)
+                row_widget.toggled.connect(self.handle_toggle_item)
+                row_action.setDefaultWidget(row_widget)
+                menu.addAction(row_action)
+        else:
+            no_item = menu.addAction("（暂无启动项）")
+            no_item.setEnabled(False)
+
         pos = self.menu_btn.mapToGlobal(QPoint(0, self.menu_btn.height() + 8))
-        
         action = menu.exec(pos)
-        
+
         self.menu_active = False
         self.menu_btn.set_active(False)
 
@@ -658,32 +776,18 @@ class LaunchCard(QFrame):
                 self.pulse_anim.stop()
                 self.icon_widget.set_active(False)
             self.update()
-        
+
         if action == edit_action:
             self.edit_requested.emit(self.slot_id)
-        elif action == rename_action:
-            self.rename_slot()
 
-    def rename_slot(self):
-        # Simple input dialog
-        from PySide6.QtWidgets import QInputDialog
-        new_name, ok = QInputDialog.getText(self, "重命名", "请输入新的卡槽名称:", text=self.slot_name)
-        if ok and new_name:
-            self.slot_name = new_name
-            self.title_label.setText(new_name)
-            # Update data structure
-            self.slot_data["name"] = new_name
-            # Emit edit requested to force save in main window context (or we need a better signal)
-            # Since we don't have direct access to config manager here easily without passing it,
-            # We will rely on the fact that slot_data is a reference to the dict in ConfigManager's list (in Python it usually is)
-            # So we just need to trigger a save.
-            # But ConfigManager needs to be told to save.
-            # Let's emit a special signal or just reuse edit_requested with a flag, but for now 
-            # let's just accept the UI update and assume user will open settings eventually or we rely on parent to save.
-            # Correct way: emit signal
-            self.edit_requested.emit(self.slot_id) # This opens the dialog, which is a bit annoying for just rename.
-            # Ideally we should have a signal rename_requested(str, str)
-            
+    def handle_toggle_item(self, item_id, enabled):
+        for item in self.items:
+            if item["id"] == item_id:
+                item["enabled"] = enabled
+                break
+        self.toggle_item_requested.emit(self.slot_id, item_id, enabled)
+        self.icon_widget.set_items(self.items)
+
     def update_data(self, slot_data):
         self.slot_data = slot_data
         self.items = slot_data.get("items", [])
@@ -978,6 +1082,8 @@ class SlotSettingsDialog(QDialog):
         for item in self.slot_data.get("items", []):
             widget_item = QListWidgetItem(item["name"])
             widget_item.setData(Qt.UserRole, item["id"])
+            widget_item.setFlags(widget_item.flags() | Qt.ItemIsUserCheckable)
+            widget_item.setCheckState(Qt.Checked if item.get("enabled", True) else Qt.Unchecked)
             icon = IconLoader.get_icon(item["path"])
             widget_item.setIcon(icon)
             self.item_list.addItem(widget_item)
@@ -1059,11 +1165,13 @@ class SlotSettingsDialog(QDialog):
         self.load_items()
     
     def closeEvent(self, event):
-        # Save order on close
         new_order = []
         for i in range(self.item_list.count()):
-            item = self.item_list.item(i)
-            new_order.append(item.data(Qt.UserRole))
-        
+            list_item = self.item_list.item(i)
+            item_id = list_item.data(Qt.UserRole)
+            new_order.append(item_id)
+            enabled = list_item.checkState() == Qt.Checked
+            self.config_manager.toggle_item_enabled(self.slot_data["id"], item_id, enabled)
+
         self.config_manager.reorder_items(self.slot_data["id"], new_order)
         super().closeEvent(event)

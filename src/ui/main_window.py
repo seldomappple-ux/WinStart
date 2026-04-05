@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
             card = LaunchCard(slot_data)
             card.launch_requested.connect(self.launch_items)
             card.edit_requested.connect(self.open_settings)
+            card.toggle_item_requested.connect(self.config_manager.toggle_item_enabled)
             self.main_layout.addWidget(card)
 
     def launch_items(self, items):
