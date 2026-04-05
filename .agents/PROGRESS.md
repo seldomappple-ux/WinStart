@@ -3,7 +3,7 @@ managed-by: vibe-governance 0.1.0
 upstream-repo: D:\code\VS Code\Taotaotao
 upstream-version: 0.1.0
 upstream-published-at: 2026-03-07T00:00:00Z
-checksum-sha256: 97a90d8aac0e0a9f57cb1fe25945322e920aebeda511b75603d9ccb9a75cd52e
+checksum-sha256: 55af7914089d2ed7892da6f9aadbb98b13853c5be8c8967c6ece15cf32517d12
 managed-note-en: DO NOT EDIT DIRECTLY. Regenerate with `vibe-governance render`.
 managed-note-zh: 请勿直接编辑此文件, 请运行 `vibe-governance render` 重新生成.
 -->
@@ -27,6 +27,7 @@ Use this file as a sliding index, not a long-form journal. Detailed history live
 
 | Page ID | Date | Title | Status | Path | Related Commit Message |
 | --- | --- | --- | --- | --- | --- |
+| `WS-2026-04-05-005` | `2026-04-05` | 安装器版本与启动项注册 | `draft` | `.agents/progress/entries/2026/2026-04-05-installer-startup.md` | feat(installer): build setup exe and register startup option during install |
 | `WS-2026-04-05-004` | `2026-04-05` | 三个 UI bug 修复 | `promotable` | `.agents/progress/entries/2026/2026-04-05-ui-bugs.md` | fix(ui): grayscale position, icon label bg, toggle lag |
 | `WS-2026-04-05-003` | `2026-04-05` | 软件开关菜单交互回归修复 | `draft` | `.agents/progress/entries/2026/2026-04-05-toggle-menu-regression.md` | fix(ui): flatten toggle menu and keep it open for batch changes |
 | `WS-2026-04-05-002` | `2026-04-05` | 启动项软件开关功能 | `promotable` | `.agents/progress/entries/2026/2026-04-05-enabled-toggle.md` | feat(ui): add per-item enabled toggle to launch cards |
