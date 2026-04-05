@@ -1,0 +1,25 @@
+project_type: software
+project_lang: zh
+comment_lang: zh
+doc_mode: bilingual
+agent_adapters:
+  - copilot
+  - cursor
+  - claude
+  - gemini
+  - opencode
+upstream:
+  repo: D:\code\VS Code\Taotaotao
+  version: 0.1.0
+  sync_strategy: manual
+override_whitelist:
+  - comments.language
+  - docs.split
+  - copilot.style
+  - cursor.review
+  - git.flow
+  - git.conventional_commits
+mcp:
+  enabled: false
+  config_path: .agents/mcp/config.yaml
+  allowed_tools: []

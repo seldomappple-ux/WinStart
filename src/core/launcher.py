@@ -10,7 +10,8 @@ class Launcher:
         """
         Launch a list of items in a separate thread to avoid freezing UI.
         """
-        threading.Thread(target=Launcher._launch_items_thread, args=(items,), daemon=True).start()
+        enabled_items = [i for i in items if i.get("enabled", True)]
+        threading.Thread(target=Launcher._launch_items_thread, args=(enabled_items,), daemon=True).start()
 
     @staticmethod
     def _launch_items_thread(items: List[Dict]):

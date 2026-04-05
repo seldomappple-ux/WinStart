@@ -7,6 +7,10 @@ import win32com.client
 import threading
 import time
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.core.startup_manager import ensure_startup_option_in_task_manager
+
 def get_resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -126,6 +130,10 @@ class InstallerApp:
             
             shutil.copy2(source_exe, target_exe)
             self.update_status("Files copied / 文件复制完成", 60)
+
+            # Register startup entry immediately so Task Manager can enable/disable it
+            self.update_status("Registering startup option... / 正在注册启动项...", 68)
+            ensure_startup_option_in_task_manager(target_exe, "WinStart")
             
             # 3. Create Shortcuts
             self.update_status("Creating shortcuts... / 正在创建快捷方式...", 70)
@@ -149,6 +157,8 @@ class InstallerApp:
                 f.write('chcp 65001 >nul\n')  # Ensure UTF-8 for Chinese characters
                 f.write('echo Uninstalling WinStart... / 正在卸载 WinStart...\n')
                 f.write('taskkill /F /IM WinStart.exe >nul 2>&1\n')
+                f.write('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "WinStart" /f >nul 2>&1\n')
+                f.write('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run" /v "WinStart" /f >nul 2>&1\n')
                 f.write(f'del "{os.path.join(os.environ["USERPROFILE"], "Desktop", "WinStart.lnk")}"\n')
                 f.write(f'rmdir /s /q "{os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "Start Menu", "Programs", "WinStart")}"\n')
                 # Self-delete logic

@@ -4,12 +4,75 @@ from PySide6.QtGui import QIcon, QPixmap, QImage, QColor
 import sys
 import ctypes
 from ctypes import wintypes
+import hashlib
 import os
 import subprocess
 import tempfile
 
 class IconLoader:
     _provider = QFileIconProvider()
+    _pixmap_cache = {}
+
+    @staticmethod
+    def _get_cache_dir() -> str:
+        base = os.getenv("APPDATA") or os.path.expanduser("~")
+        cache_dir = os.path.join(base, "WinStart", "icon_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
+
+    @staticmethod
+    def _normalize_cache_path(path: str) -> str:
+        return os.path.normcase(os.path.abspath(path))
+
+    @staticmethod
+    def _get_disk_cache_key(path: str, size: int) -> str | None:
+        normalized_path = IconLoader._normalize_cache_path(path)
+        if not os.path.exists(normalized_path):
+            return None
+
+        try:
+            mtime_ns = os.stat(normalized_path).st_mtime_ns
+        except OSError:
+            return None
+
+        raw_key = f"{normalized_path}|{mtime_ns}|{int(size)}"
+        return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _get_disk_cache_path(path: str, size: int) -> str | None:
+        cache_key = IconLoader._get_disk_cache_key(path, size)
+        if not cache_key:
+            return None
+        return os.path.join(IconLoader._get_cache_dir(), f"{cache_key}.png")
+
+    @staticmethod
+    def _load_disk_cached_pixmap(path: str, size: int) -> QPixmap | None:
+        cache_path = IconLoader._get_disk_cache_path(path, size)
+        if not cache_path or not os.path.exists(cache_path):
+            return None
+
+        pixmap = QPixmap(cache_path)
+        if pixmap.isNull():
+            try:
+                os.remove(cache_path)
+            except OSError:
+                pass
+            return None
+        return pixmap
+
+    @staticmethod
+    def _write_disk_cached_pixmap(path: str, size: int, pixmap: QPixmap) -> None:
+        if pixmap.isNull():
+            return
+
+        cache_path = IconLoader._get_disk_cache_path(path, size)
+        if not cache_path:
+            return
+
+        try:
+            pixmap.save(cache_path, "PNG")
+        except Exception:
+            pass
     
     @staticmethod
     def get_icon(path: str) -> QIcon:
@@ -112,7 +175,16 @@ class IconLoader:
     @staticmethod
     def get_pixmap(path: str, size: int = 64) -> QPixmap:
         """获取指定大小的图标 Pixmap，优先尝试获取高分辨率图标并进行智能缩放。"""
-        
+        cache_key = (os.path.normcase(path), int(size))
+        cached = IconLoader._pixmap_cache.get(cache_key)
+        if cached is not None and not cached.isNull():
+            return cached
+
+        disk_cached = IconLoader._load_disk_cached_pixmap(path, size)
+        if disk_cached is not None:
+            IconLoader._pixmap_cache[cache_key] = disk_cached
+            return disk_cached
+
         real_path = path
         # 解析快捷方式
         if sys.platform == "win32" and path.lower().endswith(".lnk"):
@@ -141,7 +213,9 @@ class IconLoader:
             # 如果返回的是默认小尺寸 (如 32x32)，直接拉伸会模糊
             # 但 smart_scale 会处理裁剪，然后缩放
             pixmap = IconLoader.smart_scale(raw_pixmap, size)
-        
+
+        IconLoader._pixmap_cache[cache_key] = pixmap
+        IconLoader._write_disk_cached_pixmap(path, size, pixmap)
         return pixmap
 
     @staticmethod
