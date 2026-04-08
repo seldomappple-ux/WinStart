@@ -1,2 +1,4 @@
 PySide6
 pyinstaller
+pywin32
+Pillow
