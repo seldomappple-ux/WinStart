@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+
 
 a = Analysis(
     ['src\\main.py'],
@@ -28,7 +30,9 @@ exe = EXE(
     strip=False,
     upx=True,
     upx_exclude=[],
-    runtime_tmpdir=None,
+    # Route onefile extraction away from the shared system temp root to reduce
+    # cleanup conflicts with Explorer, AV, and indexers.
+    runtime_tmpdir=os.path.join('%LOCALAPPDATA%', 'WinStart', '_runtime'),
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
