@@ -3,7 +3,7 @@ managed-by: vibe-governance 0.1.0
 upstream-repo: D:\code\VS Code\Taotaotao
 upstream-version: 0.1.0
 upstream-published-at: 2026-03-07T00:00:00Z
-checksum-sha256: 75d0c47beff8e7fa91de240689bf35a6707cd577e977b1b3f7e1e5072ba4e3eb
+checksum-sha256: e7f0b853c38cee7fda9a7670b7d7ee36ad49f940b231144ec4ff9aa1eff66602
 managed-note-en: DO NOT EDIT DIRECTLY. Regenerate with `vibe-governance render`.
 managed-note-zh: 请勿直接编辑此文件, 请运行 `vibe-governance render` 重新生成.
 -->
@@ -27,6 +27,8 @@ Use this file as a sliding index, not a long-form journal. Detailed history live
 
 | Page ID | Date | Title | Status | Path | Related Commit Message |
 | --- | --- | --- | --- | --- | --- |
+| `WS-2026-04-10-001` | `2026-04-10` | _MEI ???????????? | `draft` | `.agents/progress/entries/2026/2026-04-10-mei-warning-still-persists.md` | docs(runtime): record persistent _MEI temp cleanup warning feedback |
+| `WS-2026-04-09-001` | `2026-04-09` | PyInstaller _MEI ???????? | `draft` | `.agents/progress/entries/2026/2026-04-09-pyinstaller-mei-warning.md` | docs(runtime): capture initial PyInstaller _MEI temp cleanup warning |
 | `WS-2026-04-05-008` | `2026-04-05` | 首屏骨架与延后图标加载 | `draft` | `.agents/progress/entries/2026/2026-04-05-startup-skeleton-loading.md` | perf(ui): show card skeletons before deferred icon loading |
 | `WS-2026-04-05-007` | `2026-04-05` | 图标磁盘缓存优化首开性能 | `draft` | `.agents/progress/entries/2026/2026-04-05-icon-disk-cache.md` | feat(perf): add persistent disk cache for extracted icons |
 | `WS-2026-04-05-006` | `2026-04-05` | 首次启动卡顿原因分析 | `draft` | `.agents/progress/entries/2026/2026-04-05-startup-lag-analysis.md` | docs(perf): record startup lag root cause analysis |
