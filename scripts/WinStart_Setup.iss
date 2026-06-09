@@ -1,13 +1,13 @@
 [Setup]
 AppId={{D11331A4-4B1E-4CD2-BDA5-7E94B7274D0F}
 AppName=WinStart
-AppVersion=3.0.3
+AppVersion=3.0.4
 AppPublisher=WinStart
 DefaultDirName={localappdata}\WinStart
 DefaultGroupName=WinStart
 DisableProgramGroupPage=yes
 OutputDir=..\dist
-OutputBaseFilename=WinStart_Setup_v3.0.3
+OutputBaseFilename=WinStart_Setup_v3.0.4
 SetupIconFile=..\assets\app_icon.ico
 Compression=lzma2
 SolidCompression=yes
@@ -24,7 +24,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create desktop shortcut / 创建桌面快捷方式"; GroupDescription: "Additional tasks / 附加任务:"
 
 [Files]
-Source: "..\dist\WinStart.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\WinStart\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "WinStart"; ValueData: """{app}\WinStart.exe"""; Flags: uninsdeletevalue

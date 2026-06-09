@@ -1,9 +1,9 @@
 ---
 page_id: WS-2026-06-09-003
 date: 2026-06-09
-title: PyInstaller 运行时目录清理实现
+title: PyInstaller 运行时目录清理与 onedir 切换
 status: draft
-related_commit_message: "fix(packaging): clean stale PyInstaller runtime dirs"
+related_commit_message: "fix(packaging): switch installed app to onedir"
 related_commit_hash: ""
 upstream_reference: ".agents/progress/entries/2026/2026-04-09-pyinstaller-mei-warning.md"
 keywords:
@@ -13,6 +13,7 @@ keywords:
   - packaging
   - cleanup
   - onefile
+  - onedir
 ---
 
 今天继续处理 2026-04-09 记录的 PyInstaller `_MEI` 临时目录清理告警。
@@ -21,33 +22,32 @@ keywords:
 
 - 告警是在关闭程序后一段时间出现。
 - 这与 `PyInstaller onefile` bootloader 在业务进程退出后清理 `_MEI` 解压目录的阶段相符, 不是 WinStart 主窗口关闭逻辑直接抛出的错误。
+- 由于告警发生在 Python 业务代码结束之后, 应用内部关闭事件或 `try/except` 不能可靠拦截。
 
-实现与验证:
+阶段性处理:
 
-- 复查 `WinStart.spec`, 当前 onefile 构建已设置 `runtime_tmpdir=os.path.join('%LOCALAPPDATA%', 'WinStart', '_runtime')`。
-- 本机使用 `PyInstaller 6.20.0` 构建后实测, Windows 会将该路径正确展开为 `C:\Users\<user>\AppData\Local\WinStart\_runtime`。
-- 实测未再创建 `%TEMP%\_MEI*`, 也未创建字面量 `%LOCALAPPDATA%` 目录。
-- 新增 `src/core/runtime_cleanup.py`, 在 frozen 模式启动早期清理 `%LOCALAPPDATA%\WinStart\_runtime` 下非当前进程使用的旧 `_MEI*` 目录。
-- 在 `src/main.py` 启动早期调用 `cleanup_stale_pyinstaller_runtime_dirs()`。
+- 曾尝试通过 `WinStart.spec` 的 `runtime_tmpdir` 将 onefile 解压目录从 `%TEMP%` 移到 `%LOCALAPPDATA%\WinStart\_runtime`。
+- 曾增加 `src/core/runtime_cleanup.py`, 在 frozen 模式启动早期清理旧 `_MEI*` 残留目录。
+- 用户随后反馈打开程序有概率失败, 弹出 Qt 错误: `This application failed to start because no Qt platform plugin could be initialized`。
+- 复盘判断: 启动时清理近期 `_MEI*` 对 onefile 连续启动或多实例不安全, 可能误删另一个实例尚未加载完成的 Qt `platforms/qwindows.dll` 所在目录。
+- 因此清理策略改为保守模式: 只清理最后修改时间至少 7 天前的 `_MEI*` 目录。
 
-后续修正:
+最终处理方向:
 
-- 用户测试反馈打开程序有概率失败, 弹出 Qt 错误: `This application failed to start because no Qt platform plugin could be initialized`。
-- 复盘判断: 初版启动清理会删除所有非当前 `_MEI*` 目录, 对 onefile 连续启动或多实例并不安全。如果另一个实例仍在启动或 Qt 尚未加载完 `platforms/qwindows.dll`, 其解压目录可能被新实例清理, 从而触发 Qt platform plugin 初始化失败。
-- 修正为保守策略: 只清理最后修改时间至少 7 天前的 `_MEI*` 目录, 当前目录和近期目录都跳过。
-- 该策略优先保证启动稳定性, 残留清理退居次要; 如果后续仍需要更积极清理, 应改成显式维护锁文件或切换 `onedir`, 不应在启动时删除近期 `_MEI` 目录。
-
-边界:
-
-- 启动清理只能处理上次异常退出、强制结束或外部进程占用后残留的旧 `_MEI*` 目录。
-- 该逻辑不能拦截当次关闭后由 PyInstaller bootloader 发出的清理告警, 因为告警发生在 Python 业务代码结束之后。
-- 当次告警仍主要依赖 `runtime_tmpdir` 降低触发概率。
-- 如果用户机器仍稳定复现, 下一步应评估 `onedir` 分发, 或在发布说明中说明该 warning 的临时规避方式。
+- 将已安装的主程序从 PyInstaller `onefile` 切换为 `onedir`。
+- `onedir` 主程序不会在每次启动时解压到 `_MEI` 目录, 日常关闭 WinStart 时也就不再触发主程序 `_MEI` 清理告警。
+- 安装器本身仍是 onefile, 但它只是分发工具; 用户日常运行的是 `%LOCALAPPDATA%\WinStart\WinStart.exe` 目录版主程序。
+- `scripts/build_release.ps1` 现在构建 `dist/WinStart/` 目录版主程序, 生成 `dist/WinStart_v3.0.4.zip`, 并将 `dist/WinStart/` 作为 `WinStart_app` 打入安装器。
+- `src/installer_gui.py` 支持从安装器资源中的 `WinStart_app` 目录复制整个应用目录到 `%LOCALAPPDATA%\WinStart`。
 
 验证:
 
 - `python -m compileall src` 通过。
-- `runtime_cleanup` 开发态空调用通过。
 - 模拟 frozen 状态验证: 当前 `_MEI` 与近期 `_MEI` 不会被清理。
-- Qt 离屏模式下 `MainWindow` 初始化通过。
-- v3.0.3 发布构建已包含该修复。
+- `dist/WinStart/WinStart.exe` 已生成, 旁边包含 `_internal` 依赖目录。
+- `dist/WinStart_Setup_v3.0.4.exe` 已生成, 内含目录版主程序。
+
+后续规则:
+
+- 若目标是彻底规避 WinStart 主程序关闭后的 `_MEI` 告警, 发布安装版应优先使用 `onedir` 主程序。
+- 不应在启动时删除近期 `_MEI` 目录; 如需清理, 只处理足够旧的残留。

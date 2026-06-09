@@ -21,6 +21,32 @@ def get_resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+
+def copy_application_files(source_dir, fallback_exe, install_dir):
+    if os.path.isdir(source_dir):
+        for name in os.listdir(install_dir):
+            path = os.path.join(install_dir, name)
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            except OSError:
+                pass
+        shutil.copytree(source_dir, install_dir, dirs_exist_ok=True)
+        return os.path.join(install_dir, "WinStart.exe")
+
+    target_exe = os.path.join(install_dir, "WinStart.exe")
+    if not os.path.exists(fallback_exe):
+        raise FileNotFoundError("Source file not found: WinStart.exe")
+    if os.path.exists(target_exe):
+        try:
+            os.remove(target_exe)
+        except OSError:
+            pass
+    shutil.copy2(fallback_exe, target_exe)
+    return target_exe
+
 class InstallerApp:
     def __init__(self, root):
         self.root = root
@@ -117,25 +143,11 @@ class InstallerApp:
             
             # 2. Extract Files
             self.update_status("Copying files... / 正在复制文件...", 30)
+            source_dir = get_resource_path("WinStart_app")
             source_exe = get_resource_path(exe_name)
-            target_exe = os.path.join(install_dir, exe_name)
-            
             if not os.path.exists(source_exe):
-                # Fallback for dev environment or if not bundled correctly
-                dev_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dist", exe_name)
-                if os.path.exists(dev_path):
-                    source_exe = dev_path
-                else:
-                    raise FileNotFoundError(f"Source file not found: {exe_name}")
-            
-            # Use copy2 to preserve metadata, but force overwrite
-            if os.path.exists(target_exe):
-                try:
-                    os.remove(target_exe)
-                except OSError:
-                    pass # Maybe running?
-            
-            shutil.copy2(source_exe, target_exe)
+                source_exe = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dist", exe_name)
+            target_exe = copy_application_files(source_dir, source_exe, install_dir)
             self.update_status("Files copied / 文件复制完成", 60)
 
             # Register startup entry immediately so Task Manager can enable/disable it

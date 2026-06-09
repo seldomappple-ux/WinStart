@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "3.0.3"
+    [string]$Version = "3.0.4"
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,8 +8,9 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $python = Join-Path $repoRoot ".venv\Scripts\python.exe"
 $pyinstaller = Join-Path $repoRoot ".venv\Scripts\pyinstaller.exe"
 $dist = Join-Path $repoRoot "dist"
-$mainExe = Join-Path $dist "WinStart.exe"
-$versionedMainExe = Join-Path $dist "WinStart_v$Version.exe"
+$appDir = Join-Path $dist "WinStart"
+$mainExe = Join-Path $appDir "WinStart.exe"
+$versionedZip = Join-Path $dist "WinStart_v$Version.zip"
 $setupName = "WinStart_Setup_v$Version"
 $setupExe = Join-Path $dist "$setupName.exe"
 
@@ -27,7 +28,20 @@ if (-not (Test-Path $mainExe)) {
     throw "Main executable was not built: $mainExe"
 }
 
-Copy-Item -LiteralPath $mainExe -Destination $versionedMainExe -Force
+if (Test-Path $versionedZip) {
+    Remove-Item -LiteralPath $versionedZip -Force
+}
+for ($attempt = 1; $attempt -le 5; $attempt++) {
+    try {
+        Compress-Archive -Path (Join-Path $appDir "*") -DestinationPath $versionedZip -Force
+        break
+    } catch {
+        if ($attempt -eq 5) {
+            throw
+        }
+        Start-Sleep -Seconds 2
+    }
+}
 
 & $pyinstaller `
     --noconfirm `
@@ -35,7 +49,7 @@ Copy-Item -LiteralPath $mainExe -Destination $versionedMainExe -Force
     --windowed `
     --name $setupName `
     --icon (Join-Path $repoRoot "assets\app_icon.ico") `
-    --add-binary "$mainExe;." `
+    --add-data "$appDir;WinStart_app" `
     (Join-Path $repoRoot "src\installer_gui.py")
 
 if (-not (Test-Path $setupExe)) {
@@ -43,5 +57,5 @@ if (-not (Test-Path $setupExe)) {
 }
 
 Write-Host "Built release artifacts:"
-Write-Host "  $versionedMainExe"
+Write-Host "  $versionedZip"
 Write-Host "  $setupExe"
