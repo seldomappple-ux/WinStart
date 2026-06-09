@@ -4,6 +4,7 @@ import shutil
 import tkinter as tk
 from tkinter import ttk, messagebox
 import win32com.client
+import pythoncom
 import threading
 import time
 
@@ -79,6 +80,7 @@ class InstallerApp:
 
     def create_shortcut(self, target_path, shortcut_path, description="WinStart"):
         try:
+            os.makedirs(os.path.dirname(shortcut_path), exist_ok=True)
             shell = win32com.client.Dispatch("WScript.Shell")
             shortcut = shell.CreateShortCut(shortcut_path)
             shortcut.TargetPath = target_path
@@ -89,7 +91,11 @@ class InstallerApp:
             return True
         except Exception as e:
             print(f"Error creating shortcut: {e}")
-            return False
+            raise
+
+    def get_desktop_dir(self):
+        shell = win32com.client.Dispatch("WScript.Shell")
+        return shell.SpecialFolders("Desktop")
 
     def start_install(self):
         self.install_btn.config(state="disabled")
@@ -98,6 +104,7 @@ class InstallerApp:
         threading.Thread(target=self.install_process, daemon=True).start()
 
     def install_process(self):
+        pythoncom.CoInitialize()
         try:
             # 1. Prepare Paths (User level installation)
             local_appdata = os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local"))
@@ -137,15 +144,13 @@ class InstallerApp:
             
             # 3. Create Shortcuts
             self.update_status("Creating shortcuts... / 正在创建快捷方式...", 70)
+            desktop = self.get_desktop_dir()
             
             if self.startmenu_shortcut_var.get():
                 start_menu = os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "Start Menu", "Programs", "WinStart")
-                if not os.path.exists(start_menu):
-                    os.makedirs(start_menu)
                 self.create_shortcut(target_exe, os.path.join(start_menu, "WinStart.lnk"))
             
             if self.desktop_shortcut_var.get():
-                desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
                 self.create_shortcut(target_exe, os.path.join(desktop, "WinStart.lnk"))
             
             self.update_status("Finishing up... / 即将完成...", 90)
@@ -159,7 +164,7 @@ class InstallerApp:
                 f.write('taskkill /F /IM WinStart.exe >nul 2>&1\n')
                 f.write('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "WinStart" /f >nul 2>&1\n')
                 f.write('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run" /v "WinStart" /f >nul 2>&1\n')
-                f.write(f'del "{os.path.join(os.environ["USERPROFILE"], "Desktop", "WinStart.lnk")}"\n')
+                f.write(f'del "{os.path.join(desktop, "WinStart.lnk")}"\n')
                 f.write(f'rmdir /s /q "{os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "Start Menu", "Programs", "WinStart")}"\n')
                 # Self-delete logic
                 f.write('echo Uninstallation complete, cleaning up... / 卸载完成，正在清理...\n')
@@ -167,12 +172,14 @@ class InstallerApp:
                 f.write(f'rmdir /s /q "{install_dir}"\n')
             
             self.update_status("Installation complete! / 安装完成!", 100)
-            messagebox.showinfo("Success / 成功", "WinStart has been successfully installed!\nWinStart 已成功安装！")
+            messagebox.showinfo("Success / 成功", f"WinStart has been successfully installed!\n\nInstall path:\n{target_exe}")
             self.root.quit()
             
         except Exception as e:
             messagebox.showerror("Error / 错误", f"Installation failed / 安装失败:\n{str(e)}")
             self.root.quit()
+        finally:
+            pythoncom.CoUninitialize()
 
     def update_status(self, text, value):
         self.status_label.config(text=text)

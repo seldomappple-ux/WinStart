@@ -8,6 +8,7 @@ from PySide6.QtGui import QIcon
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.startup_manager import ensure_startup_option_in_task_manager
+from src.core.runtime_cleanup import cleanup_stale_pyinstaller_runtime_dirs
 from src.ui.main_window import MainWindow
 
 def get_app_root():
@@ -17,6 +18,7 @@ def get_app_root():
 
 def main():
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    cleanup_stale_pyinstaller_runtime_dirs()
     if os.name == "nt":
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("WinStart.Launcher")
         if getattr(sys, "frozen", False):

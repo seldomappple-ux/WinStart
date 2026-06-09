@@ -1,13 +1,13 @@
 [Setup]
 AppId={{D11331A4-4B1E-4CD2-BDA5-7E94B7274D0F}
 AppName=WinStart
-AppVersion=3.0.1
+AppVersion=3.0.3
 AppPublisher=WinStart
 DefaultDirName={localappdata}\WinStart
 DefaultGroupName=WinStart
 DisableProgramGroupPage=yes
 OutputDir=..\dist
-OutputBaseFilename=WinStart_Setup
+OutputBaseFilename=WinStart_Setup_v3.0.3
 SetupIconFile=..\assets\app_icon.ico
 Compression=lzma2
 SolidCompression=yes
