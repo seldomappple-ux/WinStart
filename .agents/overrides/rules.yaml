@@ -2,4 +2,4 @@ overrides:
   - id: packaging.versioned_artifacts
     title: Versioned release artifact filenames
     status: active
-    summary: Release builds must include the app version in distributable filenames, for example WinStart_v3.0.1.exe and WinStart_Setup_v3.0.1.exe.
+    summary: Release builds must increment the app version and collect final distributables under dist/WinStart_vX.Y.Z/, including WinStart_Setup_vX.Y.Z.exe, the portable onedir folder WinStart_vX.Y.Z/, and WinStart_vX.Y.Z_说明.txt. Do not include a portable zip. The main app remains PyInstaller onedir; do not publish onefile main executables.

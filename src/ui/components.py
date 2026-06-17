@@ -36,7 +36,7 @@ def _make_grayscale_pixmap(pixmap: QPixmap) -> QPixmap:
 class ToggleMenuRow(QWidget):
     toggled = Signal(str, bool)
 
-    def __init__(self, item, icon_pixmap=None, parent=None):
+    def __init__(self, item, icon_pixmap=None, parent=None, show_icon=True):
         super().__init__(parent)
         self.item_id = item["id"]
         self.setObjectName("ToggleMenuRow")
@@ -46,11 +46,12 @@ class ToggleMenuRow(QWidget):
         layout.setContentsMargins(12, 8, 12, 8)
         layout.setSpacing(10)
 
-        icon_label = QLabel()
-        icon_label.setPixmap(icon_pixmap or IconLoader.get_pixmap(item.get("path", ""), 20))
-        icon_label.setFixedSize(20, 20)
-        icon_label.setStyleSheet("background: transparent;")
-        layout.addWidget(icon_label)
+        if show_icon:
+            icon_label = QLabel()
+            icon_label.setPixmap(icon_pixmap or IconLoader.get_pixmap(item.get("path", ""), 20))
+            icon_label.setFixedSize(20, 20)
+            icon_label.setStyleSheet("background: transparent;")
+            layout.addWidget(icon_label)
 
         self.name_label = QLabel(item["name"])
         self.name_label.setStyleSheet(
@@ -832,42 +833,19 @@ class LaunchCard(QFrame):
         slot_section = menu.addAction("卡槽设置")
         slot_section.setEnabled(False)
 
-        ac_row = QWidget(menu)
-        ac_row.setObjectName("ToggleMenuRow")
-        ac_row.setCursor(Qt.PointingHandCursor)
-        ac_hl = QHBoxLayout(ac_row)
-        ac_hl.setContentsMargins(12, 8, 12, 8)
-        ac_hl.setSpacing(10)
-        ac_lbl = QLabel("启动后关闭窗口")
-        ac_lbl.setStyleSheet(
-            "color: #E0E0E0; background: transparent;" if self.auto_close else "color: #8A8A8A; background: transparent;"
+        ac_action = QWidgetAction(menu)
+        ac_row = ToggleMenuRow(
+            {"id": "__auto_close__", "name": "启动后关闭窗口", "enabled": self.auto_close, "path": ""},
+            None,
+            menu,
+            show_icon=False,
         )
-        ac_lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        ac_chk = QCheckBox()
-        ac_chk.setChecked(self.auto_close)
-        ac_chk.setCursor(Qt.PointingHandCursor)
-        ac_chk.setStyleSheet("""
-            QCheckBox { spacing: 0px; }
-            QCheckBox::indicator {
-                width: 38px; height: 22px; border-radius: 11px;
-                background-color: #3A3A3A; border: 1px solid #4A4A4A;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #1F7A45; border: 1px solid #4CAF50;
-            }
-        """)
-        ac_hl.addWidget(ac_lbl)
-        ac_hl.addWidget(ac_chk)
 
-        def _on_ac_toggled(checked):
-            ac_lbl.setStyleSheet(
-                "color: #E0E0E0; background: transparent;" if checked else "color: #8A8A8A; background: transparent;"
-            )
+        def _on_ac_toggled(item_id, checked):
             self.auto_close = checked
             self.toggle_auto_close_requested.emit(self.slot_id, checked)
 
-        ac_chk.toggled.connect(_on_ac_toggled)
-        ac_action = QWidgetAction(menu)
+        ac_row.toggled.connect(_on_ac_toggled)
         ac_action.setDefaultWidget(ac_row)
         menu.addAction(ac_action)
 
@@ -904,6 +882,7 @@ class LaunchCard(QFrame):
         self.slot_data = slot_data
         self.items = slot_data.get("items", [])
         self.slot_name = slot_data.get("name", "未命名")
+        self.auto_close = slot_data.get("auto_close", False)
         self.title_label.setText(self.slot_name)
         self.icons_loaded = False
         if self.defer_load:

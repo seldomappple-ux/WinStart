@@ -50,6 +50,8 @@ class MainWindow(QMainWindow):
             card.launch_requested.connect(self.launch_items)
             card.edit_requested.connect(self.open_settings)
             card.toggle_item_requested.connect(self.config_manager.toggle_item_enabled)
+            card.toggle_auto_close_requested.connect(self.config_manager.set_slot_auto_close)
+            card.close_requested.connect(self.close)
             self.main_layout.addWidget(card)
             self.cards.append(card)
 

@@ -24,5 +24,7 @@ This file records durable local rules for the `WinStart` desktop launcher projec
 
 - New launcher behavior should include the corresponding persistence update in `src/core/config_manager.py` when config shape changes.
 - Changes that affect startup, launching, or installer behavior should be verified on Windows before release.
-- Release build artifacts must include the app version in their filenames, for example `WinStart_v3.0.1.exe` and `WinStart_Setup_v3.0.1.exe`.
+- Release builds must increment the app version and collect final distributables under `dist/WinStart_vX.Y.Z/`.
+- Each release folder must contain exactly the installation package `WinStart_Setup_vX.Y.Z.exe`, the portable onedir folder `WinStart_vX.Y.Z/`, and a short versioned note file `WinStart_vX.Y.Z_说明.txt`; do not include a portable zip.
+- Keep the main app packaged as PyInstaller `onedir`; do not publish `WinStart_vX.Y.Z.exe` onefile main executables.
 - If a change modifies how users operate the app, add a progress entry first or alongside the implementation so future sessions can recover the intent quickly.

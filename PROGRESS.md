@@ -32,6 +32,8 @@
 
 | 记录ID | 日期       | 标题                     | 关键词                          |
 | :--- | :--- | :--- | :--- |
+| 010  | 2026-06-17 | 新增卡槽"启动后关闭窗口"开关  | auto-close, toggle, slot-settings |
+| 009  | 2026-06-16 | v3.0.5 目录版发布口径固化   | pyinstaller, onedir, release    |
 | 008  | 2026-03-06 | 安装程序 V2 (双语/免安)      | Installer, Python, UI, Bilingual |
 | 007  | 2026-03-06 | 修复图标显示与尺寸异常        | Icon, High-DPI, Scaling         |
 | 006  | 2026-03-05 | 初版安装包构建 (Inno Setup) | Installer, InnoSetup            |

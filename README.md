@@ -45,7 +45,8 @@ python scripts/build_icon.py
 .\scripts\build_release.ps1 -Version 3.0.5
 ```
 
-生成的正式发布文件为 `dist/WinStart_v3.0.5.zip` 和 `dist/WinStart_Setup_v3.0.5.exe`。
+生成的正式发布目录类似 `dist/WinStart_v3.0.6/`。
+每个版本必须递增版本号, 并在对应版本目录下放置三份交付内容: `WinStart_Setup_v3.0.6.exe`, 便携版目录 `WinStart_v3.0.6/`, `WinStart_v3.0.6_说明.txt`。
 `dist/WinStart/WinStart.exe` 是目录版主程序，旁边必须保留 `_internal/` 依赖目录；不要把它单独拷走运行。
 不要再发布 `WinStart_v*.exe` 这种单文件主程序，否则仍可能触发 PyInstaller onefile `_MEI` 清理警告。
 图标资源位于 `assets/app_icon.ico` 和 `assets/app_icon.png`。
