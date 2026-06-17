@@ -9,7 +9,7 @@ WinStart 是一款轻量级的 Windows 一键启动工具，专为创作者和�
 - **一键启动**：一键启动分组内的所有程序，支持设置启动延迟。
 - **极简设计**：采用现代深色主题，界面干净、无干扰。
 - **灵活配置**：轻松添加、修改、排序和删除启动项。
-- **轻量便携**：单文件运行，配置本地存储，随身携带。
+- **轻量便携**：目录版免安装运行，配置本地存储，随身携带。
 
 ## 🚀 快速开始
 
@@ -38,19 +38,19 @@ WinStart 是一款轻量级的 Windows 一键启动工具，专为创作者和�
 
 ### 构建可执行文件
 
-使用 PyInstaller 按项目 `.spec` 文件打包，避免绕过运行时目录等配置：
+使用统一发布脚本打包，主程序固定为 PyInstaller `onedir` 目录版，避免日常退出时触发 onefile `_MEI` 临时目录清理告警：
 
 ```bash
 python scripts/build_icon.py
-pyinstaller --noconfirm WinStart.spec
-pyinstaller --noconfirm WinStart_Setup.spec
+.\scripts\build_release.ps1 -Version 3.0.5
 ```
 
-生成的文件位于 `dist/WinStart.exe` 和 `dist/WinStart_Setup.exe`。
-不要直接用 `pyinstaller ... src/main.py` 这种裸命令打主程序，否则会跳过 `WinStart.spec` 中的 `runtime_tmpdir` 等项目级配置。
+生成的正式发布文件为 `dist/WinStart_v3.0.5.zip` 和 `dist/WinStart_Setup_v3.0.5.exe`。
+`dist/WinStart/WinStart.exe` 是目录版主程序，旁边必须保留 `_internal/` 依赖目录；不要把它单独拷走运行。
+不要再发布 `WinStart_v*.exe` 这种单文件主程序，否则仍可能触发 PyInstaller onefile `_MEI` 清理警告。
 图标资源位于 `assets/app_icon.ico` 和 `assets/app_icon.png`。
 如果你有原始长图标，请放到 `assets/app_icon_source.png`，会自动等比缩放并留白，不会拉伸变形。
-如果任务栏仍显示旧图标，请先取消固定旧图标，再重新固定 `dist/WinStart.exe`。
+如果任务栏仍显示旧图标，请先取消固定旧图标，再重新固定安装后的 `%LOCALAPPDATA%\WinStart\WinStart.exe` 或便携目录中的 `WinStart.exe`。
 
 ### 开机自启动
 

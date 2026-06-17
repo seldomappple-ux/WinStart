@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "3.0.4"
+    [string]$Version = "3.0.5"
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,6 +11,7 @@ $dist = Join-Path $repoRoot "dist"
 $appDir = Join-Path $dist "WinStart"
 $mainExe = Join-Path $appDir "WinStart.exe"
 $versionedZip = Join-Path $dist "WinStart_v$Version.zip"
+$legacyOnefileExe = Join-Path $dist "WinStart_v$Version.exe"
 $setupName = "WinStart_Setup_v$Version"
 $setupExe = Join-Path $dist "$setupName.exe"
 
@@ -30,6 +31,9 @@ if (-not (Test-Path $mainExe)) {
 
 if (Test-Path $versionedZip) {
     Remove-Item -LiteralPath $versionedZip -Force
+}
+if (Test-Path $legacyOnefileExe) {
+    Remove-Item -LiteralPath $legacyOnefileExe -Force
 }
 for ($attempt = 1; $attempt -le 5; $attempt++) {
     try {

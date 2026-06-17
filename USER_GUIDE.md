@@ -26,16 +26,18 @@ WinStart 是一款专为 Windows 设计的现代化一键启动工具，采用�
 
 ### 方法一：使用安装程序（推荐）
 
-1. 从 GitHub Releases 下载最新版本的 `WinStart_Setup.exe`
+1. 从 GitHub Releases 下载最新版本的 `WinStart_Setup_v3.0.5.exe`
 2. 运行安装程序，按照向导完成安装
 3. 安装完成后，WinStart 会自动创建桌面快捷方式和开始菜单项
-4. 首次运行会自动迁移旧版配置数据（如果存在）
+4. 主程序会安装到 `%LOCALAPPDATA%\WinStart\WinStart.exe`，同目录包含 `_internal` 依赖目录
+5. 首次运行会自动迁移旧版配置数据（如果存在）
 
 ### 方法二：便携版运行
 
-1. 下载 `WinStart.exe` 便携版
-2. 直接双击运行，无需安装
-3. 配置文件存储在程序同目录下
+1. 下载 `WinStart_v3.0.5.zip` 便携包
+2. 解压整个压缩包到任意文件夹
+3. 双击解压目录中的 `WinStart.exe` 运行，无需安装
+4. 请保留同目录的 `_internal` 文件夹，不要只复制单个 exe
 
 ### 系统要求
 - Windows 10 或 Windows 11
@@ -142,6 +144,10 @@ WinStart 采用现代极简硬件界面设计风格，注重：
 - **安装版**：`%APPDATA%\WinStart\config.json`
 - **便携版**：程序目录下的 `config.json`
 
+#### 运行目录
+- **安装版主程序**：`%LOCALAPPDATA%\WinStart\WinStart.exe`
+- **便携版主程序**：解压后的 `WinStart.exe`，旁边必须有 `_internal\` 目录
+
 #### 数据迁移
 - 从旧版本升级时会自动迁移配置
 - 支持从安装目录到 AppData 的迁移
@@ -200,6 +206,9 @@ A: 支持 Windows 10 和 Windows 11 的所有版本。
 ### Q: 需要安装Python吗？
 A: 不需要，安装版和便携版都包含所有依赖。
 
+### Q: 为什么便携版是 ZIP，而不是单个 WinStart.exe？
+A: WinStart 主程序使用目录版打包，避免 PyInstaller onefile 在退出时弹出 `_MEI` 临时目录清理警告。解压 ZIP 后运行里面的 `WinStart.exe` 即可。
+
 ### Q: 如何贡献代码或报告问题？
 A: 请访问GitHub仓库提交Issue或Pull Request。
 
@@ -228,4 +237,4 @@ A: 所有配置数据都存储在本地，不会上传到任何服务器。
 
 ---
 
-*最后更新: 2026年3月5日*
+*最后更新: 2026年6月16日*

@@ -109,6 +109,13 @@ class ConfigManager:
                         self._save_data()
                         return
 
+    def set_slot_auto_close(self, slot_id: str, value: bool):
+        for slot in self.data.get("slots", []):
+            if slot["id"] == slot_id:
+                slot["auto_close"] = value
+                self._save_data()
+                return
+
     def reorder_items(self, slot_id: str, new_order_ids: List[str]):
         for slot in self.data.get("slots", []):
             if slot["id"] == slot_id:

@@ -1,10 +1,10 @@
 # WinStart 发行说明
 
-## 🎯 最新版本 v1.0.0
+## 🎯 最新版本 v3.0.5
 
 ### 下载地址
-- **安装版**: [WinStart_Setup.exe](https://github.com/yourusername/WinStart/releases/latest/download/WinStart_Setup.exe)
-- **便携版**: [WinStart.exe](https://github.com/yourusername/WinStart/releases/latest/download/WinStart.exe)
+- **安装版**: [WinStart_Setup_v3.0.5.exe](https://github.com/yourusername/WinStart/releases/latest/download/WinStart_Setup_v3.0.5.exe)
+- **便携版**: [WinStart_v3.0.5.zip](https://github.com/yourusername/WinStart/releases/latest/download/WinStart_v3.0.5.zip)
 
 ### 系统要求
 - **操作系统**: Windows 10 / Windows 11 (64位)
@@ -36,20 +36,22 @@
 
 ## 📦 文件说明
 
-### WinStart_Setup.exe (安装版)
-- **大小**: ~45MB
+### WinStart_Setup_v3.0.5.exe (安装版)
+- **大小**: 约 70MB
 - **类型**: Windows 安装程序
 - **特性**: 
   - 标准安装向导
   - 创建桌面和开始菜单快捷方式
+  - 将目录版主程序安装到 `%LOCALAPPDATA%\WinStart`
   - 自动配置文件迁移
   - 支持卸载清理
 
-### WinStart.exe (便携版)  
-- **大小**: ~40MB
-- **类型**: 独立可执行文件
+### WinStart_v3.0.5.zip (便携版)
+- **大小**: 约 45MB
+- **类型**: 目录版压缩包
 - **特性**:
-  - 无需安装，直接运行
+  - 无需安装，解压后运行 `WinStart.exe`
+  - 主程序旁保留 `_internal` 依赖目录
   - 配置文件存储在程序目录
   - 适合U盘携带使用
   - 绿色软件，无系统修改
@@ -57,18 +59,28 @@
 ## 🚀 安装指南
 
 ### 方法一：安装版（推荐）
-1. 下载 `WinStart_Setup.exe`
+1. 下载 `WinStart_Setup_v3.0.5.exe`
 2. 双击运行安装程序
 3. 按照向导完成安装
 4. 从桌面或开始菜单启动 WinStart
 
 ### 方法二：便携版
-1. 下载 `WinStart.exe`
-2. 放置到任意文件夹
-3. 双击直接运行
-4. 配置文件自动创建在同目录
+1. 下载 `WinStart_v3.0.5.zip`
+2. 解压整个压缩包到任意文件夹
+3. 双击解压目录中的 `WinStart.exe`
+4. 不要只复制单个 exe，必须保留 `_internal` 目录
 
 ## 🔄 更新内容
+
+### v3.0.5 (2026-06-16)
+
+#### 🐛 Bug 修复
+- **修复** WinStart 主程序退出后可能弹出 `Failed to remove temporary directory ... _MEI...` 的 PyInstaller onefile 清理警告。
+
+#### 🔧 技术改进
+- **改进** 主程序正式分发形态改为 PyInstaller `onedir`，安装器复制整个目录版应用到 `%LOCALAPPDATA%\WinStart`。
+- **改进** 便携版改为 `WinStart_v3.0.5.zip`，解压后运行，避免单文件运行时解压目录被占用。
+- **保留** 安装器自身 onefile 形态，作为一次性分发工具使用。
 
 ### v1.0.0 (2026-03-05)
 
@@ -98,7 +110,11 @@
 
 ## 📊 版本历史
 
-### v1.0.0 (当前版本)
+### v3.0.5 (当前版本)
+- 主程序切换为目录版分发，规避日常退出时的 `_MEI` 清理告警
+- 发布产物为安装器 exe 与便携 zip
+
+### v1.0.0
 - 首个稳定发布版本
 - 包含所有核心功能
 - 完善的视觉设计
@@ -110,7 +126,7 @@
 - **Python**: 3.9+
 - **GUI框架**: PySide6
 - **打包工具**: PyInstaller
-- **安装程序**: Inno Setup
+- **安装程序**: PyInstaller onefile 安装器
 - **图标工具**: Pillow (图像处理)
 
 ### 项目结构
@@ -151,5 +167,5 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-*最后更新: 2026年3月5日*  
+*最后更新: 2026年6月16日*  
 *祝您使用愉快！* 🎉

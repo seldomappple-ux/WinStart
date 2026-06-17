@@ -445,6 +445,8 @@ class LaunchCard(QFrame):
     launch_requested = Signal(list)
     edit_requested = Signal(str)
     toggle_item_requested = Signal(str, str, bool)  # slot_id, item_id, enabled
+    toggle_auto_close_requested = Signal(str, bool)  # slot_id, value
+    close_requested = Signal()
 
     def __init__(self, slot_data, parent=None, defer_load=False):
         super().__init__(parent)
@@ -468,6 +470,7 @@ class LaunchCard(QFrame):
         self.items = slot_data.get("items", [])
         self.slot_id = slot_data.get("id")
         self.slot_name = slot_data.get("name", "未命名")
+        self.auto_close = slot_data.get("auto_close", False)
         self.defer_load = defer_load
 
         self.setup_ui()
@@ -736,6 +739,8 @@ class LaunchCard(QFrame):
 
         # Reset after delay
         QTimer.singleShot(1500, self.reset_style)
+        if self.auto_close:
+            QTimer.singleShot(1600, self.close_requested.emit)
 
     def reset_style(self):
         self.is_launching = False
@@ -821,6 +826,50 @@ class LaunchCard(QFrame):
         else:
             no_item = menu.addAction("（暂无启动项）")
             no_item.setEnabled(False)
+
+        # Slot settings section
+        menu.addSeparator()
+        slot_section = menu.addAction("卡槽设置")
+        slot_section.setEnabled(False)
+
+        ac_row = QWidget(menu)
+        ac_row.setObjectName("ToggleMenuRow")
+        ac_row.setCursor(Qt.PointingHandCursor)
+        ac_hl = QHBoxLayout(ac_row)
+        ac_hl.setContentsMargins(12, 8, 12, 8)
+        ac_hl.setSpacing(10)
+        ac_lbl = QLabel("启动后关闭窗口")
+        ac_lbl.setStyleSheet(
+            "color: #E0E0E0; background: transparent;" if self.auto_close else "color: #8A8A8A; background: transparent;"
+        )
+        ac_lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        ac_chk = QCheckBox()
+        ac_chk.setChecked(self.auto_close)
+        ac_chk.setCursor(Qt.PointingHandCursor)
+        ac_chk.setStyleSheet("""
+            QCheckBox { spacing: 0px; }
+            QCheckBox::indicator {
+                width: 38px; height: 22px; border-radius: 11px;
+                background-color: #3A3A3A; border: 1px solid #4A4A4A;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #1F7A45; border: 1px solid #4CAF50;
+            }
+        """)
+        ac_hl.addWidget(ac_lbl)
+        ac_hl.addWidget(ac_chk)
+
+        def _on_ac_toggled(checked):
+            ac_lbl.setStyleSheet(
+                "color: #E0E0E0; background: transparent;" if checked else "color: #8A8A8A; background: transparent;"
+            )
+            self.auto_close = checked
+            self.toggle_auto_close_requested.emit(self.slot_id, checked)
+
+        ac_chk.toggled.connect(_on_ac_toggled)
+        ac_action = QWidgetAction(menu)
+        ac_action.setDefaultWidget(ac_row)
+        menu.addAction(ac_action)
 
         pos = self.menu_btn.mapToGlobal(QPoint(0, self.menu_btn.height() + 8))
         action = menu.exec(pos)

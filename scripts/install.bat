@@ -20,14 +20,21 @@ if %errorLevel% neq 0 (
 
 REM 设置安装目录
 set "INSTALL_DIR=%ProgramFiles%\WinStart"
+set "SOURCE_DIR=%~dp0..\dist\WinStart"
 
 REM 创建安装目录
 echo 创建安装目录: %INSTALL_DIR%
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
-REM 复制主程序
-echo 复制主程序...
-copy "%~dp0..\dist\WinStart.exe" "%INSTALL_DIR%\" >nul
+REM 复制目录版主程序
+echo 复制目录版主程序...
+if not exist "%SOURCE_DIR%\WinStart.exe" (
+    echo 未找到目录版主程序: %SOURCE_DIR%\WinStart.exe
+    echo 请先运行 scripts\build_release.ps1 生成 dist\WinStart 目录。
+    pause
+    exit /b 1
+)
+xcopy "%SOURCE_DIR%\*" "%INSTALL_DIR%\" /E /I /Y >nul
 
 REM 创建开始菜单快捷方式
 echo 创建开始菜单快捷方式...
